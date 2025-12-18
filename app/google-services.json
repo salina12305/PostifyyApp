@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "1009740571502",
+    "firebase_url": "https://postify-9913e-default-rtdb.firebaseio.com",
+    "project_id": "postify-9913e",
+    "storage_bucket": "postify-9913e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1009740571502:android:b4b703dcf27df4e930977f",
+        "android_client_info": {
+          "package_name": "com.example.postifyapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeVgprb-xVmFP7of58M6Qd482vbrhxRUA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
