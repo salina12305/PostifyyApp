@@ -6,7 +6,7 @@ import com.google.firebase.auth.FirebaseUser
 interface UserRepo {
     //{
     //    "success":true,
-    //    "message":"Email snet"
+    //    "message":"Email sent"
     // }
     fun login(email: String, password: String,
               callback: (Boolean, String)-> Unit)

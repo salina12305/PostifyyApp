@@ -8,7 +8,6 @@ import android.os.Looper
 import android.provider.OpenableColumns
 import com.cloudinary.Cloudinary
 import com.cloudinary.utils.ObjectUtils
-import com.example.postifyapp.model.CommentModel
 import com.example.postifyapp.model.PostModel
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -19,10 +18,8 @@ import java.io.InputStream
 import java.util.concurrent.Executors
 
 class PostRepoImpl: PostRepo {
-
     val database : FirebaseDatabase = FirebaseDatabase.getInstance()
     val ref : DatabaseReference = database.getReference("posts")
-
     private val cloudinary = Cloudinary(
         mapOf(
             "cloud_name" to "dwfc51vqa",
@@ -108,7 +105,6 @@ class PostRepoImpl: PostRepo {
                     }
                 }
             }
-
             override fun onCancelled(error: DatabaseError) {
                 callback(false,error.message,null)
             }
@@ -134,15 +130,11 @@ class PostRepoImpl: PostRepo {
                         "resource_type", "image"
                     )
                 )
-
                 var imageUrl = response["url"] as String?
-
                 imageUrl = imageUrl?.replace("http://", "https://")
-
                 Handler(Looper.getMainLooper()).post {
                     callback(imageUrl)
                 }
-
             } catch (e: Exception) {
                 e.printStackTrace()
                 Handler(Looper.getMainLooper()).post {
@@ -169,44 +161,29 @@ class PostRepoImpl: PostRepo {
         return fileName
     }
 
-//    override fun toggleLike(postId: String, userId: String, callback: (Boolean, String) -> Unit) {
-//        val likesRef = ref.child(postId).child("likes")        // Use 'ref' instead of 'database.child("posts")'
-//
-//
-//        likesRef.get().addOnSuccessListener { snapshot ->
-//            // Handle empty list case (snapshot.value could be null)
-//            val currentLikes = if (snapshot.exists()) {
-//                snapshot.children.mapNotNull { it.getValue(String::class.java) }.toMutableList()
-//            } else {
-//                mutableListOf()
-//            }
-//
-//            if (currentLikes.contains(userId)) {
-//                currentLikes.remove(userId)
-//            } else {
-//                currentLikes.add(userId)
-//            }
-//
-//            likesRef.setValue(currentLikes).addOnCompleteListener {
-//                callback(it.isSuccessful, if (it.isSuccessful) "Success" else "Failed")
-//            }
-//        }
-//    }
+    override fun updatePostLikes(postId: String, userId: String, isLiked: Boolean, callback: (Boolean, String) -> Unit) {
+        val db = com.google.firebase.database.FirebaseDatabase.getInstance().getReference("posts")
+        val postRef = db.child(postId).child("likedBy")
 
-//    override fun addComment(postId: String, comment: CommentModel, callback: (Boolean, String) -> Unit) {        val commentsRef = ref.child(postId).child("comments")
-//
-//        commentsRef.get().addOnSuccessListener { snapshot ->
-//            val currentComments = if (snapshot.exists()) {
-//                snapshot.children.mapNotNull { it.getValue(CommentModel::class.java) }.toMutableList()
-//            } else {
-//                mutableListOf()
-//            }
-//
-//            currentComments.add(comment)
-//
-//            commentsRef.setValue(currentComments).addOnCompleteListener {
-//                callback(it.isSuccessful, if (it.isSuccessful) "Comment added" else "Failed")
-//            }
-//        }
-//    }
+        postRef.get().addOnSuccessListener { snapshot ->
+            val currentLikes = mutableListOf<String>()
+            snapshot.children.forEach { child ->
+                child.value?.toString()?.let { currentLikes.add(it) }
+            }
+            if (isLiked) {
+                if (!currentLikes.contains(userId)) currentLikes.add(userId)
+            } else {
+                currentLikes.remove(userId)
+            }
+            postRef.setValue(currentLikes)
+                .addOnSuccessListener {
+                    callback(true, "Success")
+                }
+                .addOnFailureListener { e ->
+                    callback(false, e.message ?: "Error updating likes")
+                }
+        }.addOnFailureListener { e ->
+            callback(false, e.message ?: "Error fetching data")
+        }
+    }
 }

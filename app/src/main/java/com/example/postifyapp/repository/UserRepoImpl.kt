@@ -1,6 +1,5 @@
 package com.example.postifyapp.repository
 
-
 import com.example.postifyapp.model.UserModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -10,12 +9,9 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
-// You should also have the UserRepo interface defined elsewhere.
-
 class UserRepoImpl: UserRepo {
     val auth : FirebaseAuth = FirebaseAuth.getInstance()
     val database : FirebaseDatabase = FirebaseDatabase.getInstance()
-    // Ensure this path matches your Firebase Realtime Database structure
     val ref : DatabaseReference = database.getReference("Users")
 
     override fun login(
@@ -41,7 +37,6 @@ class UserRepoImpl: UserRepo {
         auth.sendPasswordResetEmail(email)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    // This triggers the real-world Gmail message via Firebase
                     callback(true, "A reset link has been sent to $email. Please check your inbox.")
                 } else {
                     callback(false, task.exception?.message ?: "Failed to send reset email")
@@ -57,10 +52,8 @@ class UserRepoImpl: UserRepo {
         auth.createUserWithEmailAndPassword(email,password)
             .addOnCompleteListener {
                 if (it.isSuccessful){
-                    // Success: return true, message, and UID
                     callback(true,"Registration success","${auth.currentUser?.uid}")
                 }else{
-                    // FIX: Failure: return false, error message, and empty UID
                     callback(false,"${it.exception?.message}","")
                 }
             }
@@ -71,7 +64,6 @@ class UserRepoImpl: UserRepo {
         model: UserModel,
         callback: (Boolean, String) -> Unit
     ) {
-        // Uses the uid obtained from Firebase Auth as the key
         ref.child(userId).setValue(model).addOnCompleteListener {
             if(it.isSuccessful){
                 callback(true,"User data saved successfully")
@@ -144,7 +136,6 @@ class UserRepoImpl: UserRepo {
         model: UserModel,
         callback: (Boolean, String) -> Unit
     ) {
-        // Requires UserModel to have a toMap() method for partial updates
         ref.child(userId).updateChildren(model.toMap()).addOnCompleteListener {
             if (it.isSuccessful){
                 callback(true,"Profile updated successfully")

@@ -38,16 +38,11 @@ import com.example.postifyapp.viewmodel.PostViewModel
 fun MyPostScreen() {
     val context = LocalContext.current
     val postViewModel = remember { PostViewModel(PostRepoImpl()) }
-
-    // 1. Get the current logged-in user's ID
     val currentUserId = remember {
-        com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
-    }
-
+        com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid }
     val loading by postViewModel.loading.observeAsState(initial = false)
     val allPosts by postViewModel.allPosts.observeAsState(initial = emptyList())
     val selectedPost by postViewModel.posts.observeAsState()
-
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var postToAction by remember { mutableStateOf<PostModel?>(null) }
@@ -55,8 +50,6 @@ fun MyPostScreen() {
     LaunchedEffect(Unit) {
         postViewModel.getAllProduct()
     }
-
-    // 2. FILTER: Only keep posts where the creator's ID matches the current user's ID
     val myFilteredPosts = allPosts?.filter { it.userId == currentUserId } ?: emptyList()
 
     Scaffold(containerColor = Color(0xFFF8F9FA)) { padding ->
@@ -67,13 +60,11 @@ fun MyPostScreen() {
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
-
             if (loading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Color.Black)
                 }
             } else if (myFilteredPosts.isEmpty()) {
-                // Handle empty state
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("You haven't posted any stories yet.", color = Color.Gray)
                 }
@@ -94,9 +85,14 @@ fun MyPostScreen() {
                             onDelete = {
                                 postToAction = post
                                 showDeleteDialog = true
+                            },
+                            onLikeToggle = {
+                                if (currentUserId != null) {
+                                    postViewModel.toggleLike(post.id, currentUserId)
+                                } else {
+                                    Toast.makeText(context, "Login to interact", Toast.LENGTH_SHORT).show()
+                                }
                             }
-//                            onLikeClick = {  },
-//                            onCommentClick = {  }
                         )
                     }
                 }
@@ -104,7 +100,6 @@ fun MyPostScreen() {
         }
     }
 
-    // Reuse the same Update Dialog logic
     if (showEditDialog && selectedPost != null) {
         UpdatePostDialog(
             post = selectedPost!!,
@@ -118,7 +113,6 @@ fun MyPostScreen() {
         )
     }
 
-    // Reuse the same Delete Confirmation logic
     if (showDeleteDialog && postToAction != null) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },

@@ -42,20 +42,15 @@ class DashboardActivity : ComponentActivity() {
         }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardBody() {
     val context = LocalContext.current
     val activity = context as Activity
-
     val email = activity.intent.getStringExtra("email")
     val password = activity.intent.getStringExtra("password")
-
     data class NavItem(val label: String, val icon: Int)
-
     var selectedIndex by remember { mutableStateOf(value = 0) }
-
     var listNav = listOf(
         NavItem(
             label = "Feed",
@@ -72,8 +67,7 @@ fun DashboardBody() {
         NavItem(
             label = "Profile",
             icon =  com.example.postifyapp.R.drawable.baseline_person_outline_24
-
-            ),
+        ),
     )
     Scaffold(
         floatingActionButton = {
@@ -116,8 +110,6 @@ fun DashboardBody() {
             }
         }
     ) { padding ->
-//            Text(text = "Email:$email")
-//            Text(text = "password:$password")
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -129,7 +121,6 @@ fun DashboardBody() {
                 2 -> MyPostScreen()
                 3 -> ProfileScreen()
                 else -> FeedScreen()
-
             }
         }
     }

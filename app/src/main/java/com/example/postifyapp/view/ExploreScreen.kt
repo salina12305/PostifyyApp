@@ -34,34 +34,12 @@ import androidx.compose.ui.unit.dp
 import com.example.postifyapp.repository.PostRepoImpl
 import com.example.postifyapp.viewmodel.PostViewModel
 
-//import androidx.compose.foundation.background
-//import androidx.compose.foundation.layout.Column
-//import androidx.compose.foundation.layout.fillMaxSize
-//import androidx.compose.material3.Text
-//import androidx.compose.runtime.Composable
-//import androidx.compose.ui.Modifier
-//import androidx.compose.ui.graphics.Color
-//
-//@Composable
-//fun ExploreScreen(){
-//    Column (
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .background(Color.Yellow),
-//
-//        ) {
-//        Text("Search screen")
-//    }
-//}
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExploreScreen() {
     val postViewModel = remember { PostViewModel(PostRepoImpl()) }
     val currentUserId = remember { com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid }
 
-    // States for search and data
     var searchQuery by remember { mutableStateOf("") }
     val allPosts by postViewModel.allPosts.observeAsState(initial = emptyList())
     val loading by postViewModel.loading.observeAsState(initial = false)
@@ -70,14 +48,12 @@ fun ExploreScreen() {
         postViewModel.getAllProduct()
     }
 
-    // FILTER LOGIC: This updates automatically as the user types
     val filteredPosts = allPosts?.filter { post ->
         post.title.contains(searchQuery, ignoreCase = true) ||
                 post.author.contains(searchQuery, ignoreCase = true)
     } ?: emptyList()
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        // --- SEARCH BAR ---
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
@@ -94,7 +70,6 @@ fun ExploreScreen() {
             shape = RoundedCornerShape(12.dp),
             singleLine = true
         )
-
         Spacer(modifier = Modifier.height(16.dp))
 
         if (loading) {
@@ -106,15 +81,19 @@ fun ExploreScreen() {
                 Text("No stories found matching '$searchQuery'", color = Color.Gray)
             }
         } else {
-            // --- RESULTS LIST ---
             LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 items(filteredPosts) { post ->
-                    // Reuse your PostCard!
                     PostCard(
                         post = post,
                         currentUserId = currentUserId,
-                        onEdit = { /* Add your edit logic if needed */ },
-                        onDelete = { /* Add your delete logic if needed */ }
+                        onEdit = {  },
+                        onDelete = {  },
+                        onLikeToggle = {
+                            if (currentUserId != null) {
+                                postViewModel.toggleLike(post.id, currentUserId)
+                            } else {
+                            }
+                        }
                     )
                 }
             }

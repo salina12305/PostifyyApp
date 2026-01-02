@@ -9,8 +9,7 @@ data class PostModel(
     var snippet: String = "",
     var image: String = "",
     val timestamp: Long = System.currentTimeMillis(),
-    val likes: List<String> = emptyList(),
-    val comments: List<CommentModel> = emptyList(),
+    val likedBy: List<String> = emptyList()
 ){
     fun toMap() : Map<String,Any?>{
         return mapOf(
@@ -21,20 +20,8 @@ data class PostModel(
             "snippet" to snippet,
             "image" to image,
             "timestamp" to timestamp,
-            "likes" to likes,
-            "comments" to comments.map { it.toMap() }
+            "likes" to likedBy,
         )
     }
 }
 
-data class CommentModel(
-    val userName: String = "",
-    val commentText: String = ""
-) {
-    fun toMap(): Map<String, Any?> {
-        return mapOf(
-            "userName" to userName,
-            "commentText" to commentText
-        )
-    }
-}
