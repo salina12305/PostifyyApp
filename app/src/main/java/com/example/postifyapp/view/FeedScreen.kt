@@ -54,8 +54,7 @@ fun FeedScreen() {
     var showDeleteDialog by remember { mutableStateOf(false) }
     var postToAction by remember { mutableStateOf<PostModel?>(null) }
 
-    var showCommentDialog by remember { mutableStateOf(false) }
-    var postIdForComment by remember { mutableStateOf("") }
+    var selectedPostForComments by remember { mutableStateOf<PostModel?>(null) }
 
     LaunchedEffect(Unit) {
         postViewModel.getAllPost()
@@ -103,13 +102,16 @@ fun FeedScreen() {
                                 if (currentUserId != null) {
                                     postViewModel.toggleLike(post.id, currentUserId)
                                 } else {
-                                    Toast.makeText(context, "Please login to like posts", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "Please login to like posts",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             },
                             onCommentClick = {
                                 if (currentUserId != null) {
-                                    postIdForComment = post.id
-                                    showCommentDialog = true
+                                    selectedPostForComments = post // Set the post to show comments
                                 } else {
                                     Toast.makeText(context, "Please login to comment", Toast.LENGTH_SHORT).show()
                                 }
@@ -156,20 +158,22 @@ fun FeedScreen() {
             }
         )
     }
-    if (showCommentDialog) {
-        AddCommentDialog(
-            onDismiss = { showCommentDialog = false },
+    if (selectedPostForComments != null) {
+        ViewCommentsDialog(
+            post = selectedPostForComments!!,
+            onDismiss = { selectedPostForComments = null },
             onConfirm = { commentText ->
-                postViewModel.postComment(postIdForComment, commentText)
-                showCommentDialog = false
+                postViewModel.postComment(selectedPostForComments!!.id, commentText)
+                selectedPostForComments = null
+                Toast.makeText(context, "Comment posted", Toast.LENGTH_SHORT).show()
             }
         )
     }
-    // --- Place this at the bottom of FeedScreen.kt ---
+}
 
     @Composable
     fun CommentSection(comments: Map<String, PostModel.CommentModel>?) {
-        // We convert the Firebase Map to a List for the LazyColumn
+
         val commentList = comments?.values?.toList()?.sortedByDescending { it.timestamp } ?: emptyList()
 
         if (commentList.isEmpty()) {
@@ -180,7 +184,6 @@ fun FeedScreen() {
                 color = Color.Gray
             )
         } else {
-            // Use a weight or height limit so it doesn't push the text field off-screen
             LazyColumn(
                 modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -209,9 +212,7 @@ fun FeedScreen() {
             title = { Text("Discussion", fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    // Here we call the List component we made above
                     CommentSection(post.comments)
-
                     OutlinedTextField(
                         value = text,
                         onValueChange = { text = it },
@@ -229,7 +230,6 @@ fun FeedScreen() {
             }
         )
     }
-}
 
 @Composable
 fun PostCard(
@@ -274,8 +274,17 @@ fun PostCard(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Text(text = post.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Text(text = post.snippet, style = MaterialTheme.typography.bodyMedium, color = Color.DarkGray, maxLines = 3)
+                Text(
+                    text = post.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = post.snippet,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.DarkGray,
+                    maxLines = 3
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -298,11 +307,12 @@ fun PostCard(
                         color = Color.Gray
                     )
                     IconButton(onClick = onCommentClick) {
-                        Icon(Icons.Default.ChatBubbleOutline,
-                            contentDescription = "Comment", tint = Color.Gray)
+                        Icon(
+                            Icons.Default.ChatBubbleOutline,
+                            contentDescription = "Comment", tint = Color.Gray
+                        )
                     }
                     Text(
-//                        text = "${post.comments.size}",
                         text = "${post.comments?.size ?: 0}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray
@@ -322,7 +332,7 @@ fun PostCard(
         }
     }
 }
-@Composable
+    @Composable
 fun AddCommentDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
     var text by remember { mutableStateOf("") }
     AlertDialog(
@@ -345,37 +355,51 @@ fun AddCommentDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
         }
     )
 }
-@Composable
-fun UpdatePostDialog(
-    post: PostModel,
-    onDismiss: () -> Unit,
-    onUpdate: (PostModel) -> Unit
-) {
-    var title by remember { mutableStateOf(post.title) }
-    var snippet by remember { mutableStateOf(post.snippet) }
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    @Composable
+    fun UpdatePostDialog(
+        post: PostModel,
+        onDismiss: () -> Unit,
+        onUpdate: (PostModel) -> Unit
+    ) {
+        var title by remember { mutableStateOf(post.title) }
+        var snippet by remember { mutableStateOf(post.snippet) }
+        var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? -> selectedImageUri = uri }
+        val galleryLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent()
+        ) { uri: Uri? -> selectedImageUri = uri }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Update Post Details", fontWeight = FontWeight.Bold) },
-        confirmButton = {
-            Button(onClick = {
-                onUpdate(post.copy(title = title, snippet = snippet, image = selectedImageUri?.toString() ?: post.image))
-            }) { Text("Update Now") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Discard", color = Color.Gray) }
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Headline") })
-                OutlinedTextField(value = snippet, onValueChange = { snippet = it }, label = { Text("Content") }, minLines = 3)
-                Button(onClick = { galleryLauncher.launch("image/*") }) { Text("Change Image") }
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Update Post Details", fontWeight = FontWeight.Bold) },
+            confirmButton = {
+                Button(onClick = {
+                    onUpdate(
+                        post.copy(
+                            title = title,
+                            snippet = snippet,
+                            image = selectedImageUri?.toString() ?: post.image
+                        )
+                    )
+                }) { Text("Update Now") }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) { Text("Discard", color = Color.Gray) }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        label = { Text("Headline") })
+                    OutlinedTextField(
+                        value = snippet,
+                        onValueChange = { snippet = it },
+                        label = { Text("Content") },
+                        minLines = 3
+                    )
+                    Button(onClick = { galleryLauncher.launch("image/*") }) { Text("Change Image") }
+                }
             }
-        }
-    )
-}
+        )
+    }

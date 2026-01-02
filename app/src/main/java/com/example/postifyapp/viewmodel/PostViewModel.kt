@@ -71,14 +71,23 @@ class PostViewModel (val repo: PostRepo) : ViewModel(){
         val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
         if (currentUser == null) return
 
+        val userName = if (!currentUser.displayName.isNullOrEmpty()) {
+            currentUser.displayName!!
+        } else {
+            currentUser.email?.substringBefore("@") ?: "User"
+        }
+
         val comment = PostModel.CommentModel(
             userId = currentUser.uid,
-            userName = currentUser.displayName ?: "Anonymous",
-            text = text
+            userName = userName,
+            text = text,
+            timestamp = System.currentTimeMillis()
         )
 
         repo.addComment(postId, comment) { success, msg ->
-            if (success) getAllPost() // Refresh to show new comment
+            if (success) {
+                getAllPost()
+            }
         }
     }
 }

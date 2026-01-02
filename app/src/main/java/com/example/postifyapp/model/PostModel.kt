@@ -9,12 +9,7 @@ data class PostModel(
     var snippet: String = "",
     var image: String = "",
     val timestamp: Long = System.currentTimeMillis(),
-//    val likedBy: List<String> = emptyList(),
-//    val comments: List<CommentModel> = emptyList(),
-//    var likedBy: ArrayList<String> = ArrayList(),
-//    var comments: ArrayList<CommentModel> = ArrayList()
     val likedBy: List<String> = emptyList(),
-    // Change List to Map to match Firebase's structure
     val comments: Map<String, CommentModel> = emptyMap(),
 
 ){
