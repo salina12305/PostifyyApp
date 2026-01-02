@@ -4,12 +4,12 @@ package com.example.postifyapp.repository
 import android.content.Context
 import android.net.Uri
 import com.example.postifyapp.model.PostModel
+import com.example.postifyapp.model.CommentModel
 
 interface PostRepo {
 
     fun addPost(model: PostModel,
-                   callback: (Boolean, String)-> Unit
-    )
+                   callback: (Boolean, String)-> Unit)
 
     fun updatePost(model: PostModel,
                       callback: (Boolean, String) -> Unit)
@@ -24,6 +24,7 @@ interface PostRepo {
 
     fun getFileNameFromUri(context: Context, uri: Uri):String?
 
-//    fun addPostByImage(categoryId: String,
-//                             callback: (Boolean, String, List<PostModel>) -> Unit)
+//    fun toggleLike(postId: String, userId: String, callback: (Boolean, String) -> Unit)
+//
+//    fun addComment(postId: String, comment: CommentModel, callback: (Boolean, String) -> Unit)
 }

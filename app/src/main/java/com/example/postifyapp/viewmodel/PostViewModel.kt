@@ -136,6 +136,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.postifyapp.model.CommentModel
 import com.example.postifyapp.model.PostModel
 import com.example.postifyapp.repository.PostRepo
 
@@ -186,5 +187,30 @@ class PostViewModel (val repo: PostRepo) : ViewModel(){
     fun uploadImage(context: Context, imageUri: Uri, callback: (String?) -> Unit) {
         repo.uploadImage(context,imageUri,callback)
     }
+
+//    fun toggleLike(post: PostModel, userId: String) {
+//        if (userId.isEmpty() || post.userId == userId) return
+//
+//        repo.toggleLike(post.id, userId) { success, message ->
+//            // The getAllPost() listener in the repo will automatically
+//            // update the 'allPosts' state when the database changes.
+//        }
+//    }
+//    fun addComment(postId: String, userId: String, text: String, userName: String) {
+//        val comment = CommentModel(userName = userName, commentText = text)
+//        repo.addComment(postId, comment) { success, msg ->
+//            // Handle response if needed
+//        }
+//    fun addComment(postId: String, text: String, userName: String, callback: (Boolean, String) -> Unit) {
+//    if (text.isBlank()) {
+//        callback(false, "Comment cannot be empty")
+//        return
+//    }
+//
+//    val comment = CommentModel(userName = userName, commentText = text)
+//    repo.addComment(postId, comment) { success, msg ->
+//        callback(success, msg)
+//    }
+//    }
 
 }

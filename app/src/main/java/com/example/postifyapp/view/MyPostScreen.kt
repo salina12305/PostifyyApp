@@ -95,6 +95,8 @@ fun MyPostScreen() {
                                 postToAction = post
                                 showDeleteDialog = true
                             }
+//                            onLikeClick = {  },
+//                            onCommentClick = {  }
                         )
                     }
                 }

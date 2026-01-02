@@ -8,6 +8,7 @@ import android.os.Looper
 import android.provider.OpenableColumns
 import com.cloudinary.Cloudinary
 import com.cloudinary.utils.ObjectUtils
+import com.example.postifyapp.model.CommentModel
 import com.example.postifyapp.model.PostModel
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -168,30 +169,44 @@ class PostRepoImpl: PostRepo {
         return fileName
     }
 
-//    override fun addPostByImage(
-//        categoryId: String,
-//        callback: (Boolean, String, List<PostModel>) -> Unit
-//    ) {
-//        ref.orderByChild("categoryId").equalTo(categoryId)
-//            .addValueEventListener(object : ValueEventListener {
-//                override fun onDataChange(snapshot: DataSnapshot) {
-//                    val categoryPosts = mutableListOf<PostModel>()
-//                    if (snapshot.exists()) {
-//                        for (data in snapshot.children) {
-//                            val post = data.getValue(PostModel::class.java)
-//                            if (post != null) {
-//                                categoryPosts.add(post)
-//                            }
-//                        }
-//                        callback(true, "Posts for category $categoryId fetched", categoryPosts)
-//                    } else {
-//                        callback(true, "No posts found for this category", emptyList())
-//                    }
-//                }
+//    override fun toggleLike(postId: String, userId: String, callback: (Boolean, String) -> Unit) {
+//        val likesRef = ref.child(postId).child("likes")        // Use 'ref' instead of 'database.child("posts")'
 //
-//                override fun onCancelled(error: DatabaseError) {
-//                    callback(false, error.message, emptyList())
-//                }
-//            })
+//
+//        likesRef.get().addOnSuccessListener { snapshot ->
+//            // Handle empty list case (snapshot.value could be null)
+//            val currentLikes = if (snapshot.exists()) {
+//                snapshot.children.mapNotNull { it.getValue(String::class.java) }.toMutableList()
+//            } else {
+//                mutableListOf()
+//            }
+//
+//            if (currentLikes.contains(userId)) {
+//                currentLikes.remove(userId)
+//            } else {
+//                currentLikes.add(userId)
+//            }
+//
+//            likesRef.setValue(currentLikes).addOnCompleteListener {
+//                callback(it.isSuccessful, if (it.isSuccessful) "Success" else "Failed")
+//            }
+//        }
+//    }
+
+//    override fun addComment(postId: String, comment: CommentModel, callback: (Boolean, String) -> Unit) {        val commentsRef = ref.child(postId).child("comments")
+//
+//        commentsRef.get().addOnSuccessListener { snapshot ->
+//            val currentComments = if (snapshot.exists()) {
+//                snapshot.children.mapNotNull { it.getValue(CommentModel::class.java) }.toMutableList()
+//            } else {
+//                mutableListOf()
+//            }
+//
+//            currentComments.add(comment)
+//
+//            commentsRef.setValue(currentComments).addOnCompleteListener {
+//                callback(it.isSuccessful, if (it.isSuccessful) "Comment added" else "Failed")
+//            }
+//        }
 //    }
 }
