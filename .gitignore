@@ -1,19 +1,7 @@
-# Gradle
 .gradle/
 build/
-*/build/
-
-# Android Studio / IntelliJ
+app/build/
 .idea/
 *.iml
-
-# Local config
 local.properties
-
-# Native build
-.externalNativeBuild/
-.cxx/
-
-# OS
 .DS_Store
-

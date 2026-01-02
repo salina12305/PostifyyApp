@@ -5,4 +5,5 @@
     <string name="title_activity_login">LoginActivity</string>
     <string name="title_activity_dashboard">DashboardActivity</string>
     <string name="title_activity_forgot_password">ForgotPasswordActivity</string>
+    <string name="title_activity_post_card">PostCardActivity</string>
 </resources>
