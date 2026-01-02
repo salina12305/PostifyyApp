@@ -1,5 +1,6 @@
 package com.example.postifyapp.view
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,13 +31,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.postifyapp.model.PostModel
 import com.example.postifyapp.repository.PostRepoImpl
 import com.example.postifyapp.viewmodel.PostViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExploreScreen() {
+    val context = LocalContext.current
     val postViewModel = remember { PostViewModel(PostRepoImpl()) }
     val currentUserId = remember { com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid }
 
@@ -44,8 +48,10 @@ fun ExploreScreen() {
     val allPosts by postViewModel.allPosts.observeAsState(initial = emptyList())
     val loading by postViewModel.loading.observeAsState(initial = false)
 
-    var showCommentDialog by remember { mutableStateOf(false) }
-    var selectedPostId by remember { mutableStateOf("") }
+//    var showCommentDialog by remember { mutableStateOf(false) }
+//    var selectedPostId by remember { mutableStateOf("") }
+
+    var selectedPostForComments by remember { mutableStateOf<PostModel?>(null) }
 
     LaunchedEffect(Unit) {
         postViewModel.getAllPost()
@@ -74,15 +80,15 @@ fun ExploreScreen() {
             singleLine = true
         )
         Spacer(modifier = Modifier.height(16.dp))
-        if (showCommentDialog) {
-            AddCommentDialog(
-                onDismiss = { showCommentDialog = false },
-                onConfirm = { commentText ->
-                    postViewModel.postComment(selectedPostId, commentText)
-                    showCommentDialog = false
-                }
-            )
-        }
+//        if (showCommentDialog) {
+//            AddCommentDialog(
+//                onDismiss = { showCommentDialog = false },
+//                onConfirm = { commentText ->
+//                    postViewModel.postComment(selectedPostId, commentText)
+//                    showCommentDialog = false
+//                }
+//            )
+//        }
         if (loading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
@@ -105,13 +111,33 @@ fun ExploreScreen() {
                             } else {
                             }
                         },
+//                        onCommentClick = {
+//                            selectedPostId = post.id
+//                            showCommentDialog = true
                         onCommentClick = {
-                            selectedPostId = post.id
-                            showCommentDialog = true
+                            if (currentUserId != null) {
+                                selectedPostForComments = post
+                            } else {
+                                Toast.makeText(context, "Please login to comment", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     )
                 }
             }
         }
+    }
+    if (selectedPostForComments != null) {
+        ViewCommentsDialog(
+            post = selectedPostForComments!!,
+            currentUserId = currentUserId,
+            onDismiss = { selectedPostForComments = null },
+            onPostComment = { text ->
+                postViewModel.postComment(selectedPostForComments!!.id, text)
+                // We don't nullify here so user can see their comment added to the list
+            },
+            onUpdateComment = { commentId, newText ->
+                postViewModel.updateComment(selectedPostForComments!!.id, commentId, newText)
+            }
+        )
     }
 }

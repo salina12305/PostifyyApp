@@ -26,7 +26,10 @@ interface PostRepo {
     fun updatePostLikes(postId: String, userId: String, isLiked: Boolean,
                         callback: (Boolean, String) -> Unit)
 
-    fun addComment(
-        postId: String, comment: PostModel.CommentModel,
+    fun addComment(postId: String, comment: PostModel.CommentModel,
         callback: (Boolean, String) -> Unit)
+
+    fun editComment(postId: String, commentId: String, newText: String,
+        callback: (Boolean, String) -> Unit
+    )
 }

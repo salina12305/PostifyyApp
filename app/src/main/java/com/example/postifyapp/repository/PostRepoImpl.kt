@@ -207,4 +207,24 @@ class PostRepoImpl: PostRepo {
             callback(false, e.message ?: "Failed to add comment")
         }
     }
+
+    override fun editComment(
+        postId: String,
+        commentId: String,
+        newText: String,
+        callback: (Boolean, String) -> Unit
+    ) {
+        val commentTextRef = ref.child(postId)
+            .child("comments")
+            .child(commentId)
+            .child("text")
+
+        commentTextRef.setValue(newText)
+            .addOnSuccessListener {
+                callback(true, "Comment updated successfully")
+            }
+            .addOnFailureListener { e ->
+                callback(false, e.message ?: "Failed to update comment")
+            }
+    }
 }

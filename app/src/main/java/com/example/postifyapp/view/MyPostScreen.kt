@@ -46,8 +46,10 @@ fun MyPostScreen() {
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var postToAction by remember { mutableStateOf<PostModel?>(null) }
-    var showCommentDialog by remember { mutableStateOf(false) }
-    var postIdForComment by remember { mutableStateOf("") }
+//    var showCommentDialog by remember { mutableStateOf(false) }
+//    var postIdForComment by remember { mutableStateOf("") }
+
+    var selectedPostForComments by remember { mutableStateOf<PostModel?>(null) }
 
     LaunchedEffect(Unit) {
         postViewModel.getAllPost()
@@ -91,13 +93,17 @@ fun MyPostScreen() {
                             onLikeToggle = {
                                 if (currentUserId != null) {
                                     postViewModel.toggleLike(post.id, currentUserId)
-                                } else {
-                                    Toast.makeText(context, "Login to interact", Toast.LENGTH_SHORT).show()
                                 }
+//                                else {
+//                                    Toast.makeText(context, "Login to interact", Toast.LENGTH_SHORT).show()
+//                                }
                             },
                             onCommentClick = {
-                                postIdForComment = post.id
-                                showCommentDialog = true
+                                if (currentUserId != null) {
+                                    selectedPostForComments = post
+                                }
+//                                postIdForComment = post.id
+//                                showCommentDialog = true
                             }
                         )
                     }
@@ -105,13 +111,29 @@ fun MyPostScreen() {
             }
         }
     }
-    if (showCommentDialog) {
-        AddCommentDialog(
-            onDismiss = { showCommentDialog = false },
-            onConfirm = { commentText ->
-                postViewModel.postComment(postIdForComment, commentText)
-                showCommentDialog = false
+//    if (showCommentDialog) {
+//        AddCommentDialog(
+//            onDismiss = { showCommentDialog = false },
+//            onConfirm = { commentText ->
+//                postViewModel.postComment(postIdForComment, commentText)
+//                showCommentDialog = false
+//                Toast.makeText(context, "Comment posted!", Toast.LENGTH_SHORT).show()
+//            }
+//        )
+//    }
+
+    if (selectedPostForComments != null) {
+        ViewCommentsDialog(
+            post = selectedPostForComments!!,
+            currentUserId = currentUserId,
+            onDismiss = { selectedPostForComments = null },
+            onPostComment = { text ->
+                postViewModel.postComment(selectedPostForComments!!.id, text)
                 Toast.makeText(context, "Comment posted!", Toast.LENGTH_SHORT).show()
+            },
+            onUpdateComment = { commentId, newText ->
+                postViewModel.updateComment(selectedPostForComments!!.id, commentId, newText)
+                Toast.makeText(context, "Comment updated!", Toast.LENGTH_SHORT).show()
             }
         )
     }

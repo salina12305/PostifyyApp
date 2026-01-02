@@ -90,4 +90,10 @@ class PostViewModel (val repo: PostRepo) : ViewModel(){
             }
         }
     }
+
+    fun updateComment(postId: String, commentId: String, newText: String) {
+        repo.editComment(postId, commentId, newText) { success, msg ->
+            if (success) getAllPost()
+        }
+    }
 }
