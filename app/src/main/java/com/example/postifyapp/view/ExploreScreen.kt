@@ -44,8 +44,11 @@ fun ExploreScreen() {
     val allPosts by postViewModel.allPosts.observeAsState(initial = emptyList())
     val loading by postViewModel.loading.observeAsState(initial = false)
 
+    var showCommentDialog by remember { mutableStateOf(false) }
+    var selectedPostId by remember { mutableStateOf("") }
+
     LaunchedEffect(Unit) {
-        postViewModel.getAllProduct()
+        postViewModel.getAllPost()
     }
 
     val filteredPosts = allPosts?.filter { post ->
@@ -71,7 +74,15 @@ fun ExploreScreen() {
             singleLine = true
         )
         Spacer(modifier = Modifier.height(16.dp))
-
+        if (showCommentDialog) {
+            AddCommentDialog(
+                onDismiss = { showCommentDialog = false },
+                onConfirm = { commentText ->
+                    postViewModel.postComment(selectedPostId, commentText)
+                    showCommentDialog = false
+                }
+            )
+        }
         if (loading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
@@ -93,6 +104,10 @@ fun ExploreScreen() {
                                 postViewModel.toggleLike(post.id, currentUserId)
                             } else {
                             }
+                        },
+                        onCommentClick = {
+                            selectedPostId = post.id
+                            showCommentDialog = true
                         }
                     )
                 }

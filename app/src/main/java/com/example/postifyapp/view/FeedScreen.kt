@@ -54,8 +54,11 @@ fun FeedScreen() {
     var showDeleteDialog by remember { mutableStateOf(false) }
     var postToAction by remember { mutableStateOf<PostModel?>(null) }
 
+    var showCommentDialog by remember { mutableStateOf(false) }
+    var postIdForComment by remember { mutableStateOf("") }
+
     LaunchedEffect(Unit) {
-        postViewModel.getAllProduct()
+        postViewModel.getAllPost()
     }
 
     Scaffold(
@@ -102,6 +105,14 @@ fun FeedScreen() {
                                 } else {
                                     Toast.makeText(context, "Please login to like posts", Toast.LENGTH_SHORT).show()
                                 }
+                            },
+                            onCommentClick = {
+                                if (currentUserId != null) {
+                                    postIdForComment = post.id
+                                    showCommentDialog = true
+                                } else {
+                                    Toast.makeText(context, "Please login to comment", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         )
                     }
@@ -145,6 +156,79 @@ fun FeedScreen() {
             }
         )
     }
+    if (showCommentDialog) {
+        AddCommentDialog(
+            onDismiss = { showCommentDialog = false },
+            onConfirm = { commentText ->
+                postViewModel.postComment(postIdForComment, commentText)
+                showCommentDialog = false
+            }
+        )
+    }
+    // --- Place this at the bottom of FeedScreen.kt ---
+
+    @Composable
+    fun CommentSection(comments: Map<String, PostModel.CommentModel>?) {
+        // We convert the Firebase Map to a List for the LazyColumn
+        val commentList = comments?.values?.toList()?.sortedByDescending { it.timestamp } ?: emptyList()
+
+        if (commentList.isEmpty()) {
+            Text(
+                "No comments yet.",
+                modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
+            )
+        } else {
+            // Use a weight or height limit so it doesn't push the text field off-screen
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(commentList) { comment ->
+                    Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                        Text(comment.userName, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+                        Text(comment.text, style = MaterialTheme.typography.bodyMedium)
+                        HorizontalDivider(modifier = Modifier.padding(top = 8.dp), thickness = 0.5.dp, color = Color.LightGray)
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun ViewCommentsDialog(
+        post: PostModel,
+        onDismiss: () -> Unit,
+        onConfirm: (String) -> Unit
+    ) {
+        var text by remember { mutableStateOf("") }
+
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Discussion", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    // Here we call the List component we made above
+                    CommentSection(post.comments)
+
+                    OutlinedTextField(
+                        value = text,
+                        onValueChange = { text = it },
+                        placeholder = { Text("Write a comment...") },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 3
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = { if (text.isNotBlank()) onConfirm(text) }) { Text("Post") }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) { Text("Close") }
+            }
+        )
+    }
 }
 
 @Composable
@@ -153,7 +237,8 @@ fun PostCard(
     currentUserId: String?,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    onLikeToggle: () -> Unit
+    onLikeToggle: () -> Unit,
+    onCommentClick: () -> Unit
 ) {
     val isAuthor = post.userId == currentUserId
     val isLiked = post.likedBy.contains(currentUserId)
@@ -212,7 +297,17 @@ fun PostCard(
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray
                     )
-                    // Edit/Delete for Author
+                    IconButton(onClick = onCommentClick) {
+                        Icon(Icons.Default.ChatBubbleOutline,
+                            contentDescription = "Comment", tint = Color.Gray)
+                    }
+                    Text(
+//                        text = "${post.comments.size}",
+                        text = "${post.comments?.size ?: 0}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+
                     if (isAuthor) {
                         Spacer(modifier = Modifier.weight(1f))
                         IconButton(onClick = onEdit) {
@@ -227,7 +322,29 @@ fun PostCard(
         }
     }
 }
-
+@Composable
+fun AddCommentDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+    var text by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add Comment", fontWeight = FontWeight.Bold) },
+        text = {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                placeholder = { Text("Write your thoughts...") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp)
+            )
+        },
+        confirmButton = {
+            Button(onClick = { if (text.isNotBlank()) onConfirm(text) }) { Text("Post") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
+}
 @Composable
 fun UpdatePostDialog(
     post: PostModel,

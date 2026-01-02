@@ -31,7 +31,7 @@ class PostViewModel (val repo: PostRepo) : ViewModel(){
     private val _loading = MutableLiveData<Boolean>()
     val loading : MutableLiveData<Boolean> get() = _loading
 
-    fun getAllProduct() {
+    fun getAllPost() {
         _loading.postValue(true)
         repo.getAllPost  {
                 sucess,message,data->
@@ -62,8 +62,23 @@ class PostViewModel (val repo: PostRepo) : ViewModel(){
 
         repo.updatePostLikes(postId, currentUserId, !alreadyLiked) { success, msg ->
             if (success) {
-                getAllProduct()
+                getAllPost()
             }
+        }
+    }
+
+    fun postComment(postId: String, text: String) {
+        val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+        if (currentUser == null) return
+
+        val comment = PostModel.CommentModel(
+            userId = currentUser.uid,
+            userName = currentUser.displayName ?: "Anonymous",
+            text = text
+        )
+
+        repo.addComment(postId, comment) { success, msg ->
+            if (success) getAllPost() // Refresh to show new comment
         }
     }
 }

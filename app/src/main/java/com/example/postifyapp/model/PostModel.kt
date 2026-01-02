@@ -9,7 +9,14 @@ data class PostModel(
     var snippet: String = "",
     var image: String = "",
     val timestamp: Long = System.currentTimeMillis(),
-    val likedBy: List<String> = emptyList()
+//    val likedBy: List<String> = emptyList(),
+//    val comments: List<CommentModel> = emptyList(),
+//    var likedBy: ArrayList<String> = ArrayList(),
+//    var comments: ArrayList<CommentModel> = ArrayList()
+    val likedBy: List<String> = emptyList(),
+    // Change List to Map to match Firebase's structure
+    val comments: Map<String, CommentModel> = emptyMap(),
+
 ){
     fun toMap() : Map<String,Any?>{
         return mapOf(
@@ -20,8 +27,16 @@ data class PostModel(
             "snippet" to snippet,
             "image" to image,
             "timestamp" to timestamp,
-            "likes" to likedBy,
+            "likedby" to likedBy,
+            "comments" to comments,
         )
     }
+    data class CommentModel(
+        val commentId: String = "",
+        val userId: String = "",
+        val userName: String = "",
+        val text: String = "",
+        val timestamp: Long = System.currentTimeMillis()
+    )
 }
 

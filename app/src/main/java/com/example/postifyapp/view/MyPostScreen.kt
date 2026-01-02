@@ -46,9 +46,11 @@ fun MyPostScreen() {
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var postToAction by remember { mutableStateOf<PostModel?>(null) }
+    var showCommentDialog by remember { mutableStateOf(false) }
+    var postIdForComment by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        postViewModel.getAllProduct()
+        postViewModel.getAllPost()
     }
     val myFilteredPosts = allPosts?.filter { it.userId == currentUserId } ?: emptyList()
 
@@ -92,12 +94,26 @@ fun MyPostScreen() {
                                 } else {
                                     Toast.makeText(context, "Login to interact", Toast.LENGTH_SHORT).show()
                                 }
+                            },
+                            onCommentClick = {
+                                postIdForComment = post.id
+                                showCommentDialog = true
                             }
                         )
                     }
                 }
             }
         }
+    }
+    if (showCommentDialog) {
+        AddCommentDialog(
+            onDismiss = { showCommentDialog = false },
+            onConfirm = { commentText ->
+                postViewModel.postComment(postIdForComment, commentText)
+                showCommentDialog = false
+                Toast.makeText(context, "Comment posted!", Toast.LENGTH_SHORT).show()
+            }
+        )
     }
 
     if (showEditDialog && selectedPost != null) {

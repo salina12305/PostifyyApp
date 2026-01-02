@@ -73,24 +73,50 @@ class PostRepoImpl: PostRepo {
     }
 
     override fun getAllPost(callback: (Boolean, String, List<PostModel>?) -> Unit) {
-        ref.addValueEventListener(object : ValueEventListener{
+        ref.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+                val allPosts = mutableListOf<PostModel>()
                 if (snapshot.exists()) {
-                    var allPosts = mutableListOf<PostModel>()
                     for (data in snapshot.children) {
-                        val post = data.getValue(PostModel::class.java)
-                        if (post != null) {
-                            allPosts.add(post)
+                        try {
+                            val post = data.getValue(PostModel::class.java)
+                            if (post != null) {
+                                // Ensure the ID from the database key is attached to the model
+                                allPosts.add(post.copy(id = data.key ?: ""))
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("FirebaseError", "Post failed to parse: ${e.message}")
                         }
                     }
-                    callback(true, "post fetched", allPosts)
+                    callback(true, "Posts fetched", allPosts)
+                } else {
+                    callback(true, "No posts found", emptyList())
                 }
             }
             override fun onCancelled(error: DatabaseError) {
-                callback(false, error.message, emptyList())
+                callback(false, error.message, null)
             }
         })
     }
+//    override fun getAllPost(callback: (Boolean, String, List<PostModel>?) -> Unit) {
+//        ref.addValueEventListener(object : ValueEventListener{
+//            override fun onDataChange(snapshot: DataSnapshot) {
+//                if (snapshot.exists()) {
+//                    var allPosts = mutableListOf<PostModel>()
+//                    for (data in snapshot.children) {
+//                        val post = data.getValue(PostModel::class.java)
+//                        if (post != null) {
+//                            allPosts.add(post)
+//                        }
+//                    }
+//                    callback(true, "post fetched", allPosts)
+//                }
+//            }
+//            override fun onCancelled(error: DatabaseError) {
+//                callback(false, error.message, emptyList())
+//            }
+//        })
+//    }
 
     override fun getPostById(
         id: String,
@@ -186,4 +212,29 @@ class PostRepoImpl: PostRepo {
             callback(false, e.message ?: "Error fetching data")
         }
     }
+//    fun addComment(postId: String, comment: PostModel.CommentModel, callback: (Boolean, String) -> Unit) {
+//        val db = com.google.firebase.database.FirebaseDatabase.getInstance().getReference("posts")
+//        val commentRef = db.child(postId).child("comments").push() // Generates unique ID
+//
+//        val newComment = comment.copy(commentId = commentRef.key ?: "")
+//
+//        commentRef.setValue(newComment)
+//            .addOnSuccessListener { callback(true, "Comment posted") }
+//            .addOnFailureListener { e -> callback(false, e.message ?: "Failed") }
+//    }
+    override fun addComment(postId: String, comment: PostModel.CommentModel, callback: (Boolean, String) -> Unit) {
+    val db = com.google.firebase.database.FirebaseDatabase.getInstance().getReference("posts")
+
+    // .push() creates a unique ID for the comment so they don't overwrite each other
+    val commentRef = db.child(postId).child("comments").push()
+    val commentWithId = comment.copy(commentId = commentRef.key ?: "")
+
+    commentRef.setValue(commentWithId)
+        .addOnSuccessListener {
+            callback(true, "Comment added successfully")
+        }
+        .addOnFailureListener { e ->
+            callback(false, e.message ?: "Failed to add comment")
+        }
+}
 }

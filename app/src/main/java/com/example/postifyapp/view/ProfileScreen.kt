@@ -53,10 +53,9 @@ fun ProfileScreen() {
     val allPosts by postViewModel.allPosts.observeAsState(initial = emptyList())
 
     LaunchedEffect(Unit) {
-        postViewModel.getAllProduct()
+        postViewModel.getAllPost()
     }
 
-    // Calculate how many posts belong to this user
     val myPostCount = allPosts?.count { it.userId == currentUser?.uid } ?: 0
 
     Column(
