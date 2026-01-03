@@ -134,6 +134,10 @@ fun MyPostScreen() {
             onUpdateComment = { commentId, newText ->
                 postViewModel.updateComment(selectedPostForComments!!.id, commentId, newText)
                 Toast.makeText(context, "Comment updated!", Toast.LENGTH_SHORT).show()
+            },
+            onDeleteComment = {commentId ->
+                postViewModel.deleteComment(selectedPostForComments!!.id, commentId)
+                Toast.makeText(context, "Comment deleted!", Toast.LENGTH_SHORT).show()
             }
         )
     }

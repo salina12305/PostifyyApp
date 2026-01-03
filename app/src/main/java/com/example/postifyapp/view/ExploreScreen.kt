@@ -48,9 +48,6 @@ fun ExploreScreen() {
     val allPosts by postViewModel.allPosts.observeAsState(initial = emptyList())
     val loading by postViewModel.loading.observeAsState(initial = false)
 
-//    var showCommentDialog by remember { mutableStateOf(false) }
-//    var selectedPostId by remember { mutableStateOf("") }
-
     var selectedPostForComments by remember { mutableStateOf<PostModel?>(null) }
 
     LaunchedEffect(Unit) {
@@ -80,15 +77,7 @@ fun ExploreScreen() {
             singleLine = true
         )
         Spacer(modifier = Modifier.height(16.dp))
-//        if (showCommentDialog) {
-//            AddCommentDialog(
-//                onDismiss = { showCommentDialog = false },
-//                onConfirm = { commentText ->
-//                    postViewModel.postComment(selectedPostId, commentText)
-//                    showCommentDialog = false
-//                }
-//            )
-//        }
+
         if (loading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
@@ -111,9 +100,7 @@ fun ExploreScreen() {
                             } else {
                             }
                         },
-//                        onCommentClick = {
-//                            selectedPostId = post.id
-//                            showCommentDialog = true
+
                         onCommentClick = {
                             if (currentUserId != null) {
                                 selectedPostForComments = post
@@ -133,10 +120,12 @@ fun ExploreScreen() {
             onDismiss = { selectedPostForComments = null },
             onPostComment = { text ->
                 postViewModel.postComment(selectedPostForComments!!.id, text)
-                // We don't nullify here so user can see their comment added to the list
             },
             onUpdateComment = { commentId, newText ->
                 postViewModel.updateComment(selectedPostForComments!!.id, commentId, newText)
+            },
+            onDeleteComment = { commentId ->
+                postViewModel.deleteComment(selectedPostForComments!!.id, commentId)
             }
         )
     }

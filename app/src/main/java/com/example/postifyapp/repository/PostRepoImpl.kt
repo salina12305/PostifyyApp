@@ -227,4 +227,22 @@ class PostRepoImpl: PostRepo {
                 callback(false, e.message ?: "Failed to update comment")
             }
     }
+
+    override fun deleteComment(
+        postId: String,
+        commentId: String,
+        callback: (Boolean, String) -> Unit
+    ) {
+        val commentRef = ref.child(postId)
+            .child("comments")
+            .child(commentId)
+
+        commentRef.removeValue()
+            .addOnSuccessListener {
+                callback(true, "Comment deleted successfully")
+            }
+            .addOnFailureListener { e ->
+                callback(false, e.message ?: "Failed to delete comment")
+            }
+    }
 }

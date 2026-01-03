@@ -96,4 +96,12 @@ class PostViewModel (val repo: PostRepo) : ViewModel(){
             if (success) getAllPost()
         }
     }
+
+    fun deleteComment(postId: String, commentId: String) {
+        repo.deleteComment(postId, commentId) { success, msg ->
+            if (success) {
+                getAllPost()
+            }
+        }
+    }
 }

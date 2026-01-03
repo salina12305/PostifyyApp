@@ -150,18 +150,20 @@ fun FeedScreen() {
             },
             onUpdateComment = { commentId, newText ->
                 postViewModel.updateComment(selectedPostForComments!!.id, commentId, newText)
+            },
+            onDeleteComment = { commentId ->
+                postViewModel.deleteComment(selectedPostForComments!!.id, commentId)
             }
         )
     }
 }
 
-// --- SEPARATE COMPONENTS (OUTSIDE FEEDSCREEN) ---
-
 @Composable
 fun CommentSection(
     comments: Map<String, PostModel.CommentModel>?,
     currentUserId: String?,
-    onEditClick: (String, PostModel.CommentModel) -> Unit // FIX: Needs ID and Model
+    onEditClick: (String, PostModel.CommentModel) -> Unit,
+    onDeleteClick: (String) -> Unit
 ) {
     val commentList = comments?.toList()?.sortedByDescending { it.second.timestamp } ?: emptyList()
 
@@ -184,6 +186,9 @@ fun CommentSection(
                             IconButton(onClick = { onEditClick(id, comment) }, modifier = Modifier.size(24.dp)) {
                                 Icon(Icons.Default.Edit, contentDescription = "Edit", Modifier.size(16.dp), tint = Color.Gray)
                             }
+                            IconButton(onClick = { onDeleteClick(id) }, modifier = Modifier.size(24.dp)) {
+                                Icon(Icons.Default.Delete, contentDescription = "Delete", modifier = Modifier.size(16.dp), tint = Color.Red)
+                            }
                         }
                     }
                     Text(comment.text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
@@ -200,7 +205,8 @@ fun ViewCommentsDialog(
     currentUserId: String?,
     onDismiss: () -> Unit,
     onPostComment: (String) -> Unit,
-    onUpdateComment: (String, String) -> Unit
+    onUpdateComment: (String, String) -> Unit,
+    onDeleteComment: (String) -> Unit
 ) {
     var text by remember { mutableStateOf("") }
     var editingCommentId by remember { mutableStateOf<String?>(null) }
@@ -211,10 +217,12 @@ fun ViewCommentsDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (editingCommentId == null) {
-                    CommentSection(post.comments, currentUserId) { id, commentToEdit ->
+                    CommentSection(post.comments, currentUserId, { id, commentToEdit ->
                         text = commentToEdit.text
-                        editingCommentId = id // FIX: Use the ID passed from CommentSection
-                    }
+                        editingCommentId = id
+                    },
+                    onDeleteClick = { id -> onDeleteComment (id) }
+                    )
                 }
                 OutlinedTextField(
                     value = text,

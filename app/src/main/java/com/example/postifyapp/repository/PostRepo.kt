@@ -32,4 +32,8 @@ interface PostRepo {
     fun editComment(postId: String, commentId: String, newText: String,
         callback: (Boolean, String) -> Unit
     )
+
+    fun deleteComment(postId: String, commentId: String,
+        callback: (Boolean, String) -> Unit
+    )
 }
