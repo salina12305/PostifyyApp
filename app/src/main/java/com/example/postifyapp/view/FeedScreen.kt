@@ -6,11 +6,14 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -18,11 +21,13 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.postifyapp.model.PostModel
 import com.example.postifyapp.repository.PostRepoImpl
@@ -55,6 +60,9 @@ fun FeedScreen() {
     var showDeleteDialog by remember { mutableStateOf(false) }
     var postToAction by remember { mutableStateOf<PostModel?>(null) }
     var selectedPostForComments by remember { mutableStateOf<PostModel?>(null) }
+
+    var showFullPost by remember { mutableStateOf(false) }
+    var postToView by remember { mutableStateOf<PostModel?>(null) }
 
     LaunchedEffect(Unit) {
         postViewModel.getAllPost()
@@ -98,12 +106,22 @@ fun FeedScreen() {
                             onCommentClick = {
                                 if (currentUserId != null) selectedPostForComments = post
                                 else Toast.makeText(context, "Please login", Toast.LENGTH_SHORT).show()
+                            },
+                            onCardClick = {postToView=post
+                            showFullPost=true
                             }
                         )
                     }
                 }
             }
         }
+    }
+
+    if (showFullPost && postToView != null) {
+        FullPostView(
+            post = postToView!!,
+            onDismiss = { showFullPost = false }
+        )
     }
 
     if (showEditDialog && selectedPost != null) {
@@ -158,6 +176,96 @@ fun FeedScreen() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FullPostView(
+    post: PostModel,
+    onDismiss: () -> Unit
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = Color.White,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp)
+        ) {
+            AsyncImage(
+                model = post.image.ifEmpty { "https://via.placeholder.com/400x200" },
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp)
+                    .clip(RoundedCornerShape(16.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(text = post.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 12.dp)) {
+                Box(modifier = Modifier.size(32.dp).background(Color(0xFFE2E8F0), CircleShape), contentAlignment = Alignment.Center) {
+                    Text(post.author.take(1).uppercase(), fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(text = "By ${post.author}", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+            }
+
+            Divider(color = Color(0xFFEEEEEE))
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = post.snippet,
+                style = MaterialTheme.typography.bodyLarge,
+                lineHeight = 26.sp,
+                color = Color.DarkGray
+            )
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Text(text = "Comments (${post.comments.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+            if (post.comments.isEmpty()) {
+                Text(
+                    "No comments yet. Be the first to share your thoughts!",
+                    modifier = Modifier.padding(vertical = 20.dp),
+                    color = Color.LightGray,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            } else {
+                post.comments.values.forEach { comment ->
+                    CommentItem(comment = comment)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(50.dp))
+        }
+    }
+}
+
+@Composable
+fun CommentItem(comment: PostModel.CommentModel) {
+    Column(modifier = Modifier.padding(vertical = 10.dp).fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(text = comment.userName, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodySmall)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = "• Just now", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+        }
+        Text(
+            text = comment.text,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 4.dp),
+            color = Color.Black
+        )
+        Divider(modifier = Modifier.padding(top = 10.dp), thickness = 0.5.dp, color = Color(0xFFF0F0F0))
+    }
+}
+
 @Composable
 fun CommentSection(
     comments: Map<String, PostModel.CommentModel>?,
@@ -179,7 +287,6 @@ fun CommentSection(
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-//                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(comment.userName,
                             fontWeight = FontWeight.Bold,
@@ -284,16 +391,18 @@ fun ViewCommentsDialog(
 fun PostCard(
     post: PostModel,
     currentUserId: String?,
+    modifier: Modifier = Modifier,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onLikeToggle: () -> Unit,
-    onCommentClick: () -> Unit
+    onCommentClick: () -> Unit,
+    onCardClick: () -> Unit
 ) {
     val isAuthor = post.userId == currentUserId
     val isLiked = post.likedBy.contains(currentUserId)
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable{ onCardClick()},
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         border = BorderStroke(1.dp, Color(0xFFEEEEEE))

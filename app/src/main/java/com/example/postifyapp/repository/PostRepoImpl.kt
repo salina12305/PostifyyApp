@@ -81,7 +81,6 @@ class PostRepoImpl: PostRepo {
                         try {
                             val post = data.getValue(PostModel::class.java)
                             if (post != null) {
-                                // Ensure the ID from the database key is attached to the model
                                 allPosts.add(post.copy(id = data.key ?: ""))
                             }
                         } catch (e: Exception) {

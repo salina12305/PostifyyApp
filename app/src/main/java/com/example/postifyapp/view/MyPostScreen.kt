@@ -48,6 +48,8 @@ fun MyPostScreen() {
     var postToAction by remember { mutableStateOf<PostModel?>(null) }
 
     var selectedPostForComments by remember { mutableStateOf<PostModel?>(null) }
+    var showFullPost by remember { mutableStateOf(false) }
+    var postToView by remember { mutableStateOf<PostModel?>(null) }
 
     LaunchedEffect(Unit) {
         postViewModel.getAllPost()
@@ -92,16 +94,15 @@ fun MyPostScreen() {
                                 if (currentUserId != null) {
                                     postViewModel.toggleLike(post.id, currentUserId)
                                 }
-//                                else {
-//                                    Toast.makeText(context, "Login to interact", Toast.LENGTH_SHORT).show()
-//                                }
                             },
                             onCommentClick = {
                                 if (currentUserId != null) {
                                     selectedPostForComments = post
                                 }
-//                                postIdForComment = post.id
-//                                showCommentDialog = true
+                            },
+                            onCardClick = {
+                                postToView = post
+                                showFullPost = true
                             }
                         )
                     }
@@ -109,16 +110,13 @@ fun MyPostScreen() {
             }
         }
     }
-//    if (showCommentDialog) {
-//        AddCommentDialog(
-//            onDismiss = { showCommentDialog = false },
-//            onConfirm = { commentText ->
-//                postViewModel.postComment(postIdForComment, commentText)
-//                showCommentDialog = false
-//                Toast.makeText(context, "Comment posted!", Toast.LENGTH_SHORT).show()
-//            }
-//        )
-//    }
+
+    if (showFullPost && postToView != null) {
+        FullPostView(
+            post = postToView!!,
+            onDismiss = { showFullPost = false }
+        )
+    }
 
     if (selectedPostForComments != null) {
         ViewCommentsDialog(

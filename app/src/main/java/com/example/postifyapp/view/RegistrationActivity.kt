@@ -86,7 +86,6 @@ fun RegisterBody() {
                 .padding(padding)
                 .background(Color.White)
                 .verticalScroll(rememberScrollState())
-                // Apply horizontal padding here so EVERYTHING has space on the sides
                 .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

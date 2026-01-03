@@ -4,10 +4,7 @@ import com.example.postifyapp.model.UserModel
 import com.google.firebase.auth.FirebaseUser
 
 interface UserRepo {
-    //{
-    //    "success":true,
-    //    "message":"Email sent"
-    // }
+
     fun login(email: String, password: String,
               callback: (Boolean, String)-> Unit)
 

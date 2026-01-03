@@ -67,7 +67,6 @@ fun ProfileScreen() {
     ) {
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Profile Picture Placeholder (Initials)
         Box(
             modifier = Modifier
                 .size(120.dp)

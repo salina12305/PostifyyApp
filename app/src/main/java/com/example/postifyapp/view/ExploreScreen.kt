@@ -50,6 +50,9 @@ fun ExploreScreen() {
 
     var selectedPostForComments by remember { mutableStateOf<PostModel?>(null) }
 
+    var showFullPost by remember { mutableStateOf(false) }
+    var postToView by remember { mutableStateOf<PostModel?>(null) }
+
     LaunchedEffect(Unit) {
         postViewModel.getAllPost()
     }
@@ -107,12 +110,25 @@ fun ExploreScreen() {
                             } else {
                                 Toast.makeText(context, "Please login to comment", Toast.LENGTH_SHORT).show()
                             }
+                        },
+                        onCardClick = {
+                            postToView=post
+                            showFullPost=true
+
                         }
                     )
                 }
             }
         }
     }
+
+    if (showFullPost && postToView != null) {
+        FullPostView(
+            post = postToView!!,
+            onDismiss = { showFullPost = false }
+        )
+    }
+
     if (selectedPostForComments != null) {
         ViewCommentsDialog(
             post = selectedPostForComments!!,
