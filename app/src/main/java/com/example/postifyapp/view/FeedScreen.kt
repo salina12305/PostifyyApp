@@ -179,15 +179,41 @@ fun CommentSection(
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+//                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(comment.userName, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+                        Text(comment.userName,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.labelLarge,
+                            modifier = Modifier.weight(1f)
+                        )
+
                         if (comment.userId == currentUserId) {
-                            IconButton(onClick = { onEditClick(id, comment) }, modifier = Modifier.size(24.dp)) {
-                                Icon(Icons.Default.Edit, contentDescription = "Edit", Modifier.size(16.dp), tint = Color.Gray)
-                            }
-                            IconButton(onClick = { onDeleteClick(id) }, modifier = Modifier.size(24.dp)) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete", modifier = Modifier.size(16.dp), tint = Color.Red)
+                            Row (
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                IconButton(
+                                    onClick = { onEditClick(id, comment) },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Edit,
+                                        contentDescription = "Edit",
+                                        Modifier.size(16.dp),
+                                        tint = Color.Gray
+                                    )
+                                }
+                                IconButton(
+                                    onClick = { onDeleteClick(id) },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = "Delete",
+                                        modifier = Modifier.size(16.dp),
+                                        tint = Color.Red
+                                    )
+                                }
                             }
                         }
                     }

@@ -46,8 +46,6 @@ fun MyPostScreen() {
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var postToAction by remember { mutableStateOf<PostModel?>(null) }
-//    var showCommentDialog by remember { mutableStateOf(false) }
-//    var postIdForComment by remember { mutableStateOf("") }
 
     var selectedPostForComments by remember { mutableStateOf<PostModel?>(null) }
 
