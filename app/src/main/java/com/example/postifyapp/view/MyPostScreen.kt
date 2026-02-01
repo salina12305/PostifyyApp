@@ -57,7 +57,7 @@ fun MyPostScreen() {
     val myFilteredPosts = allPosts?.filter { it.userId == currentUserId } ?: emptyList()
 
     Scaffold(containerColor = Color(0xFFF8F9FA)) { padding ->
-        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize().padding(bottom = padding.calculateBottomPadding())) {
             Text(
                 "My Published Stories",
                 modifier = Modifier.padding(16.dp),

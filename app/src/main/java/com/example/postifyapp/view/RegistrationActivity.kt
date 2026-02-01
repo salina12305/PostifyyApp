@@ -284,27 +284,6 @@ fun RegisterBody() {
                 HorizontalDivider(modifier = Modifier.weight(1f))
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-            OutlinedButton(
-                onClick = {
-                    Toast.makeText(context, "Gmail login is not implemented", Toast.LENGTH_LONG).show()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(55.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.gmail),
-                    contentDescription = "Gmail",
-                    tint = Color.Unspecified,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Sign up with Gmail", fontSize = 16.sp)
-            }
-
             Spacer(modifier = Modifier.height(30.dp))
             Text(
                 text = buildAnnotatedString {
