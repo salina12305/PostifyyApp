@@ -58,6 +58,7 @@ dependencies {
     androidTestImplementation("androidx.test:rules:1.2.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.1")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
     implementation("androidx.compose.runtime:runtime-livedata:1.6.8")
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation("com.cloudinary:cloudinary-android:2.1.0")
