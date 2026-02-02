@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -110,9 +111,9 @@ fun RegisterBody() {
                 value = email,
                 onValueChange = { email = it },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                modifier = fieldModifier.testTag("regEmail"),
                 placeholder = { Text("Email Address") },
                 colors = inputColors,
-                modifier = fieldModifier,
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
             )
@@ -122,9 +123,9 @@ fun RegisterBody() {
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
+                modifier = fieldModifier.testTag("regUsername"),
                 placeholder = { Text("Username") },
                 colors = inputColors,
-                modifier = fieldModifier,
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
             )
@@ -135,6 +136,7 @@ fun RegisterBody() {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
+                modifier = fieldModifier.testTag("regPassword"),
                 placeholder = { Text("Password") },
                 trailingIcon = {
                     IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
@@ -147,7 +149,6 @@ fun RegisterBody() {
                 },
                 visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                 colors = inputColors,
-                modifier = fieldModifier,
                 shape = RoundedCornerShape(12.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
@@ -158,6 +159,7 @@ fun RegisterBody() {
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it},
+                modifier = fieldModifier.testTag("regConfirmPassword"),
                 placeholder = { Text("Confirm Password") },
                 trailingIcon = {
                     IconButton(onClick = { confirmPasswordVisibility = !confirmPasswordVisibility }) {
@@ -170,7 +172,6 @@ fun RegisterBody() {
                 },
                 visualTransformation = if (confirmPasswordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                 colors = inputColors,
-                modifier = fieldModifier,
                 shape = RoundedCornerShape(12.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
@@ -185,6 +186,7 @@ fun RegisterBody() {
                 Checkbox(
                     checked = terms,
                     onCheckedChange = { terms = it },
+                    modifier = Modifier.testTag("regTerms"),
                     colors = CheckboxDefaults.colors(checkedColor = DarkGreen)
                 )
                 Text("I agree to the Terms & Conditions", fontSize = 14.sp)
@@ -280,7 +282,8 @@ fun RegisterBody() {
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(55.dp),
+                    .height(55.dp)
+                    .testTag("regSignUpButton"),
                 colors = ButtonDefaults.buttonColors(containerColor = Blue)
             ) {
                 Text("Sign Up", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = White)
