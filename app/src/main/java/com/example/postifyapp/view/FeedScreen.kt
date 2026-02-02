@@ -42,7 +42,10 @@ fun getFormattedDate(timestamp: Long? = null): String {
     return formatter.format(date)
 }
 
-// --- MAIN SCREEN ---
+/**
+ * FeedScreen: The main social hub where all stories are displayed.
+ * It manages global post states and handles navigation to detailed views and interactions.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen() {
@@ -77,11 +80,13 @@ fun FeedScreen() {
                 fontWeight = FontWeight.ExtraBold
             )
 
+            // Show loading spinner only if we have no data yet
             if (loading && (allPosts?.isEmpty() == true)) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Color.Black)
                 }
             } else {
+                // --- Post List ---
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -92,7 +97,7 @@ fun FeedScreen() {
                             post = post,
                             currentUserId = currentUserId,
                             onEdit = {
-                                postViewModel.getPostById(post.id)
+                                postViewModel.getPostById(post.id) // Fetch specific post data
                                 showEditDialog = true
                             },
                             onDelete = {
@@ -117,6 +122,8 @@ fun FeedScreen() {
         }
     }
 
+    // --- Logic Layers (Dialogs & Sheets) ---
+    // Full Story Modal Bottom Sheet
     if (showFullPost && postToView != null) {
         FullPostView(
             post = postToView!!,
@@ -124,6 +131,7 @@ fun FeedScreen() {
         )
     }
 
+    // Edit/Update Flow
     if (showEditDialog && selectedPost != null) {
         UpdatePostDialog(
             post = selectedPost!!,
@@ -137,6 +145,7 @@ fun FeedScreen() {
         )
     }
 
+    // Deletion Confirmation Flow
     if (showDeleteDialog && postToAction != null) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -158,6 +167,7 @@ fun FeedScreen() {
         )
     }
 
+    // Comments Management Flow
     if (selectedPostForComments != null) {
         ViewCommentsDialog(
             post = selectedPostForComments!!,
@@ -176,6 +186,10 @@ fun FeedScreen() {
     }
 }
 
+/**
+ * FullPostView: An immersive reading mode using ModalBottomSheet.
+ * It shows the full text and a snapshot of comments.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FullPostView(
@@ -194,6 +208,7 @@ fun FullPostView(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
         ) {
+            // Post Banner
             AsyncImage(
                 model = post.image.ifEmpty { "https://via.placeholder.com/400x200" },
                 contentDescription = null,
@@ -207,7 +222,7 @@ fun FullPostView(
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(text = post.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-
+            // Author Info
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 12.dp)) {
                 Box(modifier = Modifier.size(32.dp).background(Color(0xFFE2E8F0), CircleShape), contentAlignment = Alignment.Center) {
                     Text(post.author.take(1).uppercase(), fontWeight = FontWeight.Bold)
@@ -218,6 +233,7 @@ fun FullPostView(
 
             Divider(color = Color(0xFFEEEEEE))
 
+            // Full Snippet Content
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = post.snippet,
@@ -228,6 +244,7 @@ fun FullPostView(
 
             Spacer(modifier = Modifier.height(30.dp))
 
+            // Comment Snapshot within the reading view
             Text(text = "Comments (${post.comments.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             if (post.comments.isEmpty()) {
@@ -247,6 +264,7 @@ fun FullPostView(
         }
     }
 }
+
 
 @Composable
 fun CommentItem(comment: PostModel.CommentModel) {
@@ -387,6 +405,10 @@ fun ViewCommentsDialog(
     )
 }
 
+/**
+ * PostCard: The reusable UI component for the feed list.
+ * Handles the logic for "Author Actions" (Edit/Delete icons) which only appear for the post owner.
+ */
 @Composable
 fun PostCard(
     post: PostModel,
@@ -408,6 +430,7 @@ fun PostCard(
         border = BorderStroke(1.dp, Color(0xFFEEEEEE))
     ) {
         Column {
+            // Visual Banner
             AsyncImage(
                 model = post.image.ifEmpty { "https://via.placeholder.com/400x200" },
                 contentDescription = "Post Image",
@@ -415,6 +438,7 @@ fun PostCard(
                 contentScale = ContentScale.Crop
             )
             Column(modifier = Modifier.padding(16.dp)) {
+                // Metadata Row
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.size(28.dp).background(Color(0xFFE2E8F0), CircleShape), contentAlignment = Alignment.Center) {
                         Text(post.author.take(1).uppercase(), fontWeight = FontWeight.Bold)
@@ -425,7 +449,9 @@ fun PostCard(
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(text = post.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 Text(text = post.snippet, style = MaterialTheme.typography.bodyMedium, color = Color.DarkGray, maxLines = 3)
+
                 Spacer(modifier = Modifier.height(16.dp))
+                // Interaction Row
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onLikeToggle) {
                         Icon(imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder, contentDescription = "Like", tint = if (isLiked) Color.Red else Color.Gray)
@@ -435,6 +461,7 @@ fun PostCard(
                         Icon(Icons.Default.ChatBubbleOutline, contentDescription = "Comment", tint = Color.Gray)
                     }
                     Text(text = "${post.comments?.size ?: 0}", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                    // Ownership check: Only show Edit/Delete to the person who created the post
                     if (isAuthor) {
                         Spacer(modifier = Modifier.weight(1f))
                         IconButton(onClick = onEdit) { Icon(Icons.Default.Edit, "Edit", tint = Color.Blue) }

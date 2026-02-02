@@ -41,6 +41,9 @@ import android.content.Intent
 import com.example.postifyapp.repository.PostRepoImpl
 import com.example.postifyapp.viewmodel.PostViewModel
 
+/**
+ * ProfileScreen: Displays the current user's info, activity stats, and logout options.
+ */
 @Composable
 fun ProfileScreen() {
     val context = LocalContext.current
@@ -66,7 +69,8 @@ fun ProfileScreen() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(40.dp))
-
+        // --- Profile Avatar ---
+        // Generates a circular avatar with the first letter of the user's email
         Box(
             modifier = Modifier
                 .size(120.dp)
@@ -83,7 +87,7 @@ fun ProfileScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Email Address
+        // --- User Identity ---
         Text(
             text = currentUser?.email ?: "Unknown User",
             style = MaterialTheme.typography.titleLarge,
@@ -93,7 +97,8 @@ fun ProfileScreen() {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Stats Row (Post Count)
+// --- Statistics Card ---
+        // Displays the "Stories Published" metric
         Card(
             modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
             shape = RoundedCornerShape(16.dp),
@@ -119,14 +124,17 @@ fun ProfileScreen() {
                 }
             }
         }
-
+        // Pushes the Logout button to the bottom of the screen
         Spacer(modifier = Modifier.weight(1f))
 
         // Logout Button
         Button(
             onClick = {
+                // 1. Terminate Firebase Session
                 auth.signOut()
+                // 2. Prepare Intent to return to Login
                 val intent = Intent(context, LoginActivity::class.java)
+                // 3. Clear the Activity Stack so user cannot "Back" into the profile
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 context.startActivity(intent)
                 activity?.finish()

@@ -4,7 +4,12 @@ import android.content.Context
 import android.net.Uri
 import com.example.postifyapp.model.PostModel
 
+/**
+ * PostRepo: The "Contract" for data operations.
+ * This interface abstracts the source of data (Firebase) from the rest of the app.
+ */
 interface PostRepo {
+    // --- Core Post Management ---
     fun addPost(model: PostModel,
                 callback: (Boolean, String)-> Unit)
 
@@ -19,10 +24,12 @@ interface PostRepo {
     fun getPostById(productId: String,
                     callback: (Boolean, String, PostModel?) -> Unit)
 
+    // --- Media Handling ---
     fun uploadImage(context: Context, imageUri: Uri, callback: (String?)-> Unit)
 
     fun getFileNameFromUri(context: Context, uri: Uri):String?
 
+    // --- Social Interactions ---
     fun updatePostLikes(postId: String, userId: String, isLiked: Boolean,
                         callback: (Boolean, String) -> Unit)
 

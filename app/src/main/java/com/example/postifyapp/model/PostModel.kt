@@ -1,5 +1,9 @@
 package com.example.postifyapp.model
 
+/**
+ * PostModel: Represents a single "Story" in the Postify ecosystem.
+ * This class is designed to be compatible with Firebase Realtime Database.
+ */
 data class PostModel(
 
     var id: String = "",
@@ -13,6 +17,10 @@ data class PostModel(
     val comments: Map<String, CommentModel> = emptyMap(),
 
 ){
+    /**
+     * Converts the PostModel object into a Map.
+     * Firebase uses this to write data to specific database nodes.
+     */
     fun toMap() : Map<String,Any?>{
         return mapOf(
             "id" to id,
@@ -26,6 +34,9 @@ data class PostModel(
             "comments" to comments,
         )
     }
+    /**
+     * CommentModel: Nested data structure representing an individual user comment.
+     */
     data class CommentModel(
         val commentId: String = "",
         val userId: String = "",

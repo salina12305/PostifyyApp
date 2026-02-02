@@ -34,15 +34,23 @@ import com.example.postifyapp.model.PostModel
 import com.example.postifyapp.repository.PostRepoImpl
 import com.example.postifyapp.viewmodel.PostViewModel
 
+/**
+ * MyPostScreen: A dedicated view for users to manage their own content.
+ * Features: Filtering personal posts, Editing, Deleting, and viewing Comments.
+ */
 @Composable
 fun MyPostScreen() {
     val context = LocalContext.current
     val postViewModel = remember { PostViewModel(PostRepoImpl()) }
+    // --- Authentication State ---
     val currentUserId = remember {
         com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid }
+    // --- Observable States from ViewModel ---
     val loading by postViewModel.loading.observeAsState(initial = false)
     val allPosts by postViewModel.allPosts.observeAsState(initial = emptyList())
     val selectedPost by postViewModel.posts.observeAsState()
+    // --- Local UI Control State ---
+    // These booleans and objects control which dialog is currently visible to the user
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var postToAction by remember { mutableStateOf<PostModel?>(null) }
@@ -51,9 +59,12 @@ fun MyPostScreen() {
     var showFullPost by remember { mutableStateOf(false) }
     var postToView by remember { mutableStateOf<PostModel?>(null) }
 
+    // Fetch latest posts from the database when the screen enters the composition
     LaunchedEffect(Unit) {
         postViewModel.getAllPost()
     }
+    // --- Client-Side Filtering ---
+    // Instead of fetching only user posts, we filter the global list locally.
     val myFilteredPosts = allPosts?.filter { it.userId == currentUserId } ?: emptyList()
 
     Scaffold(containerColor = Color(0xFFF8F9FA)) { padding ->
@@ -64,15 +75,18 @@ fun MyPostScreen() {
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
+            // --- UI Branching based on Loading/Data Status ---
             if (loading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Color.Black)
                 }
             } else if (myFilteredPosts.isEmpty()) {
+                // Empty State Feedback
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("You haven't posted any stories yet.", color = Color.Gray)
                 }
             } else {
+                // The List of User's Posts
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -83,6 +97,7 @@ fun MyPostScreen() {
                             post = post,
                             currentUserId = currentUserId,
                             onEdit = {
+                                // Fetch fresh data for this post before opening the edit dialog
                                 postViewModel.getPostById(post.id)
                                 showEditDialog = true
                             },
@@ -111,6 +126,8 @@ fun MyPostScreen() {
         }
     }
 
+    // --- Overlay Components (Dialogs & Full Screens) ---
+    // 1. Detailed View of a post
     if (showFullPost && postToView != null) {
         FullPostView(
             post = postToView!!,
@@ -118,6 +135,7 @@ fun MyPostScreen() {
         )
     }
 
+    // 2. Comments Management Overlay
     if (selectedPostForComments != null) {
         ViewCommentsDialog(
             post = selectedPostForComments!!,
@@ -138,6 +156,7 @@ fun MyPostScreen() {
         )
     }
 
+    // 3. Update/Edit Dialog
     if (showEditDialog && selectedPost != null) {
         UpdatePostDialog(
             post = selectedPost!!,
@@ -151,6 +170,7 @@ fun MyPostScreen() {
         )
     }
 
+    // 4. Delete Confirmation Dialog
     if (showDeleteDialog && postToAction != null) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },

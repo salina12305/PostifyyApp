@@ -57,6 +57,8 @@ class RegistrationActivity : ComponentActivity() {
 
 @Composable
 fun RegisterBody() {
+    // --- State Management ---
+    // Tracks user input for form fields
     var email by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -64,9 +66,11 @@ fun RegisterBody() {
     var terms by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
+    // Initializing ViewModel with its Repository implementation
     val userViewModel = remember { UserViewModel(UserRepoImpl()) }
     val activity = context as? Activity
 
+    // Controls toggling between password hidden (***) and visible text
     var passwordVisibility by remember { mutableStateOf(false) }
     var confirmPasswordVisibility by remember { mutableStateOf(false) }
 
@@ -85,12 +89,13 @@ fun RegisterBody() {
                 .fillMaxSize()
                 .padding(padding)
                 .background(Color.White)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState())  // Ensures small screens can scroll the form
                 .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(40.dp))
 
+            // Brand Header
             Text(
                 "Positfy",
                 style = TextStyle(fontSize = 35.sp, color = Blue),
@@ -100,6 +105,7 @@ fun RegisterBody() {
             Text("Create a new account", color = Color.Gray,
                 modifier = Modifier.padding(bottom = 30.dp))
 
+            // --- Input Fields ---
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -125,6 +131,7 @@ fun RegisterBody() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Password field with Visibility Toggle
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -147,6 +154,7 @@ fun RegisterBody() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Confirm Password field
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it},
@@ -169,6 +177,7 @@ fun RegisterBody() {
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // --- Agreement Section ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -183,6 +192,7 @@ fun RegisterBody() {
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // --- Registration Logic ---
             Button(
                     onClick = {
                         when {
@@ -211,11 +221,13 @@ fun RegisterBody() {
                             }
 
                             else -> {
+                                // Step A: Register User in Firebase Auth
                                 userViewModel.register(
                                     email,
                                     password
                                 ) { success, message, userId ->
                                     if (success) {
+                                        // Step B: Create a User Profile in Database upon successful Auth
                                         val model = UserModel(
                                             userId = userId,
                                             email = email,
@@ -226,6 +238,7 @@ fun RegisterBody() {
                                             model
                                         ) { dbSuccess, dbMessage ->
                                             if (dbSuccess) {
+                                                // Step C: Send Email Verification for security
                                                 val firebaseUser =
                                                     FirebaseAuth.getInstance().currentUser
                                                 firebaseUser?.sendEmailVerification()
@@ -244,7 +257,7 @@ fun RegisterBody() {
                                                     "Registration Successful!",
                                                     Toast.LENGTH_SHORT
                                                 ).show()
-
+                                                // Step D: Redirect to Login
                                                 val intent =
                                                     Intent(context, LoginActivity::class.java)
                                                 context.startActivity(intent)
@@ -274,7 +287,7 @@ fun RegisterBody() {
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-
+            // --- Footer Navigation ---
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -285,6 +298,7 @@ fun RegisterBody() {
             }
 
             Spacer(modifier = Modifier.height(30.dp))
+            // Styled text for navigation back to Login
             Text(
                 text = buildAnnotatedString {
                     append("Already have an account? ")

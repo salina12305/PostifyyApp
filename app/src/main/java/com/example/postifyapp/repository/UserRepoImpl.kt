@@ -9,11 +9,15 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
+/**
+ * UserRepoImpl: Handles the actual interaction with Firebase Auth and Database.
+ */
 class UserRepoImpl: UserRepo {
     val auth : FirebaseAuth = FirebaseAuth.getInstance()
     val database : FirebaseDatabase = FirebaseDatabase.getInstance()
     val ref : DatabaseReference = database.getReference("Users")
 
+    // --- Authentication ---
     override fun login(
         email: String,
         password: String,
@@ -49,9 +53,11 @@ class UserRepoImpl: UserRepo {
         password: String,
         callback: (Boolean, String, String) -> Unit
     ) {
+        // Step 1: Create the entry in Firebase Auth
         auth.createUserWithEmailAndPassword(email,password)
             .addOnCompleteListener {
                 if (it.isSuccessful){
+                    // Pass back the unique UID to be used for the database record
                     callback(true,"Registration success","${auth.currentUser?.uid}")
                 }else{
                     callback(false,"${it.exception?.message}","")
@@ -59,11 +65,13 @@ class UserRepoImpl: UserRepo {
             }
     }
 
+    // --- Database Operations ---
     override fun addUserToDatabase(
         userId: String,
         model: UserModel,
         callback: (Boolean, String) -> Unit
     ) {
+        // Step 2: Save detailed profile info using the UID as the key
         ref.child(userId).setValue(model).addOnCompleteListener {
             if(it.isSuccessful){
                 callback(true,"User data saved successfully")
@@ -77,6 +85,7 @@ class UserRepoImpl: UserRepo {
         userId: String,
         callback: (Boolean, UserModel?) -> Unit
     ) {
+        // Real-time listener: UI will update automatically if the profile changes in the cloud
         ref.child(userId).addValueEventListener(object : ValueEventListener{
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()){
@@ -136,6 +145,7 @@ class UserRepoImpl: UserRepo {
         model: UserModel,
         callback: (Boolean, String) -> Unit
     ) {
+        // use updateChildren and the toMap() helper to avoid overwriting the whole object
         ref.child(userId).updateChildren(model.toMap()).addOnCompleteListener {
             if (it.isSuccessful){
                 callback(true,"Profile updated successfully")

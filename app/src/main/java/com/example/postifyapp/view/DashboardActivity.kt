@@ -46,9 +46,13 @@ class DashboardActivity : ComponentActivity() {
 @Composable
 fun DashboardBody() {
     val context = LocalContext.current
+    // --- Navigation State ---
+    // selectedIndex tracks which tab is currently active
     val activity = context as Activity
     val email = activity.intent.getStringExtra("email")
     val password = activity.intent.getStringExtra("password")
+
+    // Data class to structure our bottom navigation items
     data class NavItem(val label: String, val icon: Int)
     var selectedIndex by remember { mutableStateOf(value = 0) }
     var listNav = listOf(
@@ -70,6 +74,7 @@ fun DashboardBody() {
         ),
     )
     Scaffold(
+        // The FAB is globally available across all tabs to encourage posting
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 val intent= Intent(context, PostCardActivity::class.java)
@@ -96,6 +101,7 @@ fun DashboardBody() {
                             Image(
                                 painter = painterResource(item.icon),
                                 contentDescription = null
+                                // Subtle tinting could be added here for better UX
                             )
                         },
                         label = {
@@ -110,16 +116,18 @@ fun DashboardBody() {
             }
         }
     ) { padding ->
+        // --- Content Router ---
+        // This Box acts as a container that swaps screens based on selectedIndex
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
             when (selectedIndex) {
-                0 -> FeedScreen()
-                1 -> ExploreScreen()
-                2 -> MyPostScreen()
-                3 -> ProfileScreen()
+                0 -> FeedScreen()     // Global trending stories
+                1 -> ExploreScreen()  // Search and discovery
+                2 -> MyPostScreen()   // User's own management dashboard
+                3 -> ProfileScreen()  // User settings and logout
                 else -> FeedScreen()
             }
         }

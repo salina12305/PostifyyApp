@@ -23,6 +23,10 @@ import com.example.postifyapp.repository.UserRepoImpl
 import com.example.postifyapp.viewmodel.UserViewModel
 import com.example.postifyapp.R
 
+/**
+ * ForgetPasswordActivity: Allows users to request a password reset email.
+ * This activity handles the "lost credentials" use case by sending a recovery link via Firebase.
+ */
 class ForgetPasswordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,11 +38,13 @@ class ForgetPasswordActivity : ComponentActivity() {
 
 @Composable
 fun ForgetPasswordBody() {
+    // --- State Management ---
     var email by remember { mutableStateOf("") }
     val context = LocalContext.current
     val activity = context as? android.app.Activity
     val userViewModel = remember { UserViewModel(UserRepoImpl()) }
 
+    // Consistent styling for the input fields to match Login/Register
     val inputColors = TextFieldDefaults.colors(
         unfocusedContainerColor = Color(0xFFF8F8F8),
         focusedContainerColor = Color(0xFFF8F8F8),
@@ -55,6 +61,7 @@ fun ForgetPasswordBody() {
     ) {
         Spacer(modifier = Modifier.height(60.dp))
 
+        // --- Brand Header ---
         Text(
             text = "Postify",
             style = androidx.compose.ui.text.TextStyle(
@@ -74,6 +81,7 @@ fun ForgetPasswordBody() {
 
         Spacer(modifier = Modifier.height(20.dp))
 
+        // --- Instruction Text ---
         Text(
             "Reset Password",
             fontSize = 24.sp,
@@ -92,7 +100,7 @@ fun ForgetPasswordBody() {
         )
 
         Spacer(modifier = Modifier.height(32.dp))
-
+        // --- Input Field ---
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -104,12 +112,14 @@ fun ForgetPasswordBody() {
         )
 
         Spacer(modifier = Modifier.height(24.dp))
-
+        // --- Reset Logic ---
         Button(
             onClick = {
                 if (email.isNotEmpty()) {
+                    // Trigger the Firebase reset email flow via the ViewModel
                     userViewModel.forgetPassword(email) { success, message ->
                         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                        // If successful, navigate back to Login so the user can sign in after resetting
                         if (success) activity?.finish()
                     }
                 } else {
@@ -126,7 +136,7 @@ fun ForgetPasswordBody() {
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-
+        // --- Navigation ---
         Text(
             "Back to Login",
             color = Color(0xFF0095F6),

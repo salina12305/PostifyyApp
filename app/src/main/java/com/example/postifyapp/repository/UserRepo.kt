@@ -3,8 +3,13 @@ package com.example.postifyapp.repository
 import com.example.postifyapp.model.UserModel
 import com.google.firebase.auth.FirebaseUser
 
+/**
+ * UserRepo: The contract for managing user identity and profile data.
+ * It coordinates Firebase Authentication with Database profile storage.
+ */
 interface UserRepo {
 
+    // --- Authentication Flow ---
     fun login(email: String, password: String,
               callback: (Boolean, String)-> Unit)
 
@@ -16,6 +21,10 @@ interface UserRepo {
         callback: (Boolean, String, String) -> Unit
     )
 
+    // --- Database Profile Management ---
+    /** * Links the Firebase Auth UID to a detailed profile in the database.
+     * Called immediately after successful registration.
+     */
     fun addUserToDatabase(userId: String, model: UserModel,
                           callback: (Boolean, String) -> Unit
     )

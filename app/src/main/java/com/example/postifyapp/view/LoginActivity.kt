@@ -42,8 +42,13 @@ class LoginActivity : ComponentActivity() {
     }
 }
 
+/**
+ * LoginActivity: Handles user authentication.
+ * It provides entry points for existing users, password recovery, and new user registration.
+ */
 @Composable
 fun LoginBody() {
+    // --- State Management ---
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var visibility by remember { mutableStateOf(false) }
@@ -68,11 +73,13 @@ fun LoginBody() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(80.dp))
+        // Brand Identity
         Text(
             text = "Postify",
             style = TextStyle(fontSize = 40.sp, fontWeight = FontWeight.Bold, color = Blue)
         )
         Spacer(modifier = Modifier.height(40.dp))
+        // --- Email Input ---
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -83,6 +90,7 @@ fun LoginBody() {
             singleLine = true
         )
         Spacer(modifier = Modifier.height(16.dp))
+        // --- Password Input with Visibility Toggle ---
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -106,21 +114,28 @@ fun LoginBody() {
             singleLine = true
         )
         Spacer(modifier = Modifier.height(24.dp))
+        // --- Login Action ---
         Button(
             onClick = {
+                // 1. Basic validation
                 if (email.isEmpty() || password.isEmpty()) {
                     Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show()
                 } else {
+                    // 2. Call ViewModel to perform Firebase Authentication
                     userViewModel.login(email, password) { success, message ->
                         if (success) {
+                            // 3. Post-login Security Check: Verify if email is confirmed
                             val firebaseUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
                             if (firebaseUser?.isEmailVerified == true) {
+                                // Navigate to main application hub
                                 context.startActivity(Intent(context, DashboardActivity::class.java))
                                 activity.finish()
                             } else {
+                                // Prevent access if email isn't verified yet
                                 Toast.makeText(context, "Please verify your email via Gmail first.", Toast.LENGTH_LONG).show()
                             }
                         } else {
+                            // Display Firebase error messages (e.g., "Invalid password")
                             Toast.makeText(context, "Login Failed: $message", Toast.LENGTH_LONG).show()
                         }
                     }
@@ -135,6 +150,7 @@ fun LoginBody() {
             Text("Log In", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
         }
         Spacer(modifier = Modifier.height(20.dp))
+        // --- Password Reset ---
         Text(
             text = "Forgotten your login details? Reset your password.",
             fontSize = 13.sp,
@@ -145,6 +161,8 @@ fun LoginBody() {
             }
         )
         Spacer(modifier = Modifier.height(30.dp))
+
+        // Visual Divider for alternative actions
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
@@ -153,25 +171,9 @@ fun LoginBody() {
             Text("  OR  ", color = Color.Gray, fontSize = 12.sp)
             HorizontalDivider(modifier = Modifier.weight(1f), color = Color.LightGray)
         }
+
         Spacer(modifier = Modifier.height(30.dp))
-        OutlinedButton(
-            onClick = { Toast.makeText(context, "Gmail login not implemented", Toast.LENGTH_SHORT).show() },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(55.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.gmail),
-                contentDescription = "Gmail",
-                tint = Color.Unspecified,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Log in with Gmail", fontSize = 16.sp)
-        }
-        Spacer(modifier = Modifier.height(30.dp))
+        // --- Registration Redirect ---
         Row(modifier = Modifier.padding(bottom = 30.dp)) {
             Text("Don't have an account? ", color = Color.Gray)
             Text(
@@ -181,7 +183,7 @@ fun LoginBody() {
                 modifier = Modifier.clickable {
                     context.startActivity(Intent(context,
                         RegistrationActivity::class.java))
-                    activity.finish()
+                    activity.finish()  // Closes Login so back button doesn't loop
                 }
             )
         }

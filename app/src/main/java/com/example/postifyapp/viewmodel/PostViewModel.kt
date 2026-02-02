@@ -8,8 +8,23 @@ import androidx.lifecycle.ViewModel
 import com.example.postifyapp.model.PostModel
 import com.example.postifyapp.repository.PostRepo
 
+/**
+ * PostViewModel: Orchestrates the state of the Feed and individual Posts.
+ * It observes data from the Repository and exposes it as LiveData for the UI.
+ */
 class PostViewModel (val repo: PostRepo) : ViewModel(){
 
+    // --- State Observables ---
+    private val _posts = MutableLiveData<PostModel?>()
+    val posts : MutableLiveData<PostModel?> get() = _posts
+
+    private val _allPosts = MutableLiveData<List<PostModel>?>()
+    val allPosts : MutableLiveData<List<PostModel>?> get() = _allPosts
+
+    private val _loading = MutableLiveData<Boolean>()
+    val loading : MutableLiveData<Boolean> get() = _loading
+
+    // --- CRUD Operations ---
     fun addPost(model: PostModel, callback: (Boolean, String) -> Unit) {
         repo.addPost(model,callback)
     }
@@ -22,15 +37,10 @@ class PostViewModel (val repo: PostRepo) : ViewModel(){
         repo.deletePost(id,callback)
     }
 
-    private val _posts = MutableLiveData<PostModel?>()
-    val posts : MutableLiveData<PostModel?> get() = _posts
-
-    private val _allPosts = MutableLiveData<List<PostModel>?>()
-    val allPosts : MutableLiveData<List<PostModel>?> get() = _allPosts
-
-    private val _loading = MutableLiveData<Boolean>()
-    val loading : MutableLiveData<Boolean> get() = _loading
-
+    /**
+     * getAllPost: Triggers the repository to fetch data from Firebase.
+     * Updates _allPosts when the data arrives.
+     */
     fun getAllPost() {
         _loading.postValue(true)
         repo.getAllPost  {
@@ -42,6 +52,10 @@ class PostViewModel (val repo: PostRepo) : ViewModel(){
         }
     }
 
+    /**
+     * getPostById: Fetches details for a specific post.
+     * Essential for the "Update Post" dialog logic.
+     */
     fun getPostById(id :String) {
         repo.getPostById(id) {
                 sucess,message,data->
@@ -55,7 +69,11 @@ class PostViewModel (val repo: PostRepo) : ViewModel(){
     fun uploadImage(context: Context, imageUri: Uri, callback: (String?) -> Unit) {
         repo.uploadImage(context,imageUri,callback)
     }
-
+    // --- Social Engagement Logic ---
+    /**
+     * toggleLike: Logic for adding/removing a user's ID from the liked list.
+     * It checks the current state locally before sending the toggle request to the Repo.
+     */
     fun toggleLike(postId: String, currentUserId: String) {
         val post = allPosts.value?.find { it.id == postId } ?: return
         val alreadyLiked = post.likedBy.contains(currentUserId)
@@ -67,6 +85,9 @@ class PostViewModel (val repo: PostRepo) : ViewModel(){
         }
     }
 
+    /**
+     * postComment: Formats a CommentModel using current user info and sends it to the Repo.
+     */
     fun postComment(postId: String, text: String) {
         val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
         if (currentUser == null) return

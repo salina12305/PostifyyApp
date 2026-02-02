@@ -17,9 +17,15 @@ import com.google.firebase.database.ValueEventListener
 import java.io.InputStream
 import java.util.concurrent.Executors
 
+/**
+ * PostRepoImpl: The concrete implementation of our data layer.
+ * This class handles the nitty-gritty of network calls and data parsing.
+ */
 class PostRepoImpl: PostRepo {
     val database : FirebaseDatabase = FirebaseDatabase.getInstance()
     val ref : DatabaseReference = database.getReference("posts")
+
+    // Cloudinary setup for external image hosting
     private val cloudinary = Cloudinary(
         mapOf(
             "cloud_name" to "dwfc51vqa",
@@ -32,7 +38,8 @@ class PostRepoImpl: PostRepo {
         model: PostModel,
         callback: (Boolean, String) -> Unit
     ) {
-        var id = ref.push().key.toString()
+        // Generate a unique ID from Firebase before saving
+        val id = ref.push().key.toString()
         model.id = id
 
         ref.child(id).setValue(model).addOnCompleteListener {
@@ -48,9 +55,10 @@ class PostRepoImpl: PostRepo {
         model: PostModel,
         callback: (Boolean, String) -> Unit
     ) {
+        // Use updateChildren to only modify specific fields provided in the Map
         ref.child(model.id).updateChildren(model.toMap()).addOnCompleteListener {
             if(it.isSuccessful){
-                callback(true,"post updated")
+                callback(true,"Post updated")
             }else{
                 callback(false,"${it.exception?.message}")
 
@@ -73,6 +81,7 @@ class PostRepoImpl: PostRepo {
     }
 
     override fun getAllPost(callback: (Boolean, String, List<PostModel>?) -> Unit) {
+        // addValueEventListener provides real-time updates whenever data changes
         ref.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val allPosts = mutableListOf<PostModel>()
@@ -81,6 +90,7 @@ class PostRepoImpl: PostRepo {
                         try {
                             val post = data.getValue(PostModel::class.java)
                             if (post != null) {
+                                // Ensure the post object carries its Firebase Key as its ID
                                 allPosts.add(post.copy(id = data.key ?: ""))
                             }
                         } catch (e: Exception) {
@@ -122,6 +132,8 @@ class PostRepoImpl: PostRepo {
         imageUri: Uri,
         callback: (String?) -> Unit
     ) {
+        // Network operations MUST NOT run on the Main Thread.
+        // Using an Executor ensures the UI stays responsive during upload.
         val executor = Executors.newSingleThreadExecutor()
         executor.execute {
             try {
@@ -136,7 +148,9 @@ class PostRepoImpl: PostRepo {
                         "resource_type", "image"
                     )
                 )
+                // Cloudinary often returns http; we force https for Android security (Cleartext traffic)
                 var imageUrl = response["url"] as String?
+                // Switch back to the Main Looper to trigger UI updates/Toasts
                 imageUrl = imageUrl?.replace("http://", "https://")
                 Handler(Looper.getMainLooper()).post {
                     callback(imageUrl)
@@ -171,6 +185,7 @@ class PostRepoImpl: PostRepo {
         val db = com.google.firebase.database.FirebaseDatabase.getInstance().getReference("posts")
         val postRef = db.child(postId).child("likedBy")
 
+        // Transactional logic: Fetch current list, modify it, then push back
         postRef.get().addOnSuccessListener { snapshot ->
             val currentLikes = mutableListOf<String>()
             snapshot.children.forEach { child ->
@@ -194,7 +209,7 @@ class PostRepoImpl: PostRepo {
     }
     override fun addComment(postId: String, comment: PostModel.CommentModel, callback: (Boolean, String) -> Unit) {
     val db = com.google.firebase.database.FirebaseDatabase.getInstance().getReference("posts")
-
+        // Nest comments under the specific post ID
     val commentRef = db.child(postId).child("comments").push()
     val commentWithId = comment.copy(commentId = commentRef.key ?: "")
 

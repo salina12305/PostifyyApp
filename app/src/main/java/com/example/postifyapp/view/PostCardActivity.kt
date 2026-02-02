@@ -31,14 +31,20 @@ import com.example.postifyapp.utils.ImageUtils
 import com.example.postifyapp.viewmodel.PostViewModel
 import java.util.UUID
 
+/**
+ * Activity responsible for creating a new post.
+ * It integrates ImageUtils for gallery access and PostViewModel for data persistence.
+ */
 class PostCardActivity : ComponentActivity() {
     private lateinit var imageUtils: ImageUtils
+    // Tracks the local URI of the image selected by the user before it's uploaded
     private var selectedImageUri by mutableStateOf<Uri?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // Initialize helper for image picking and register the callback for results
         imageUtils = ImageUtils(this, this)
         imageUtils.registerLaunchers { uri ->
             selectedImageUri = uri
@@ -62,15 +68,17 @@ fun PostScreen(
     val context = LocalContext.current
     val activity = context as? Activity
 
+    // --- User Session ---
     val currentUser = remember {
         com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
     }
     val userId = currentUser?.uid ?: ""
     val userEmail = currentUser?.email ?: "Unknown"
 
+    // --- UI State ---
     var title by remember { mutableStateOf("") }
     var snippet by remember { mutableStateOf("") }
-    var isUploading by remember { mutableStateOf(false) }
+    var isUploading by remember { mutableStateOf(false) } // Controls the loading spinner and button state
 
     Scaffold { padding ->
         LazyColumn(
@@ -81,6 +89,7 @@ fun PostScreen(
                 .padding(16.dp)
         ) {
             item {
+                // --- Image Selection Area ---
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -93,6 +102,7 @@ fun PostScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     if (selectedImageUri != null) {
+                        // Display the locally picked image using Coil
                         AsyncImage(
                             model = selectedImageUri,
                             contentDescription = "Selected Image",
@@ -100,6 +110,7 @@ fun PostScreen(
                             contentScale = ContentScale.Crop
                         )
                     } else {
+                        // Placeholder UI when no image is selected
                         Image(
                             painter = painterResource(R.drawable.bg),
                             contentDescription = "Placeholder",
@@ -126,6 +137,7 @@ fun PostScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // --- Form Fields ---
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
@@ -143,16 +155,19 @@ fun PostScreen(
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
-
+                // --- Submission Logic ---
                 Button(
                     onClick = {
+                        // 1. Validate that an image exists
                         if (selectedImageUri == null) {
                             Toast.makeText(context, "Please select an image", Toast.LENGTH_SHORT).show()
                             return@Button
                         }
                         isUploading = true
+                        // 2. First Step: Upload the binary image to Firebase Storage
                         viewModel.uploadImage(context, selectedImageUri) { uploadedUrl ->
                             if (uploadedUrl != null) {
+                                // 3. Second Step: Use the returned URL to create the Post object
                                 val newPost = PostModel(
                                     id = UUID.randomUUID().toString(),
 
@@ -161,12 +176,13 @@ fun PostScreen(
 
                                     title = title,
                                     snippet = snippet,
-                                    image = uploadedUrl
+                                    image = uploadedUrl // This is the public HTTPS URL from Firebase Storage
                                 )
+                                // 4. Third Step: Save the Post object to the Realtime Database
                                 viewModel.addPost(newPost) { success, message ->
                                     isUploading = false
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                                    if (success) activity?.finish()
+                                    if (success) activity?.finish() // Close screen on success
                                 }
                             } else {
                                 isUploading = false
@@ -175,7 +191,7 @@ fun PostScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !isUploading
+                    enabled = !isUploading // Disable button during network operations
                 ) {
                     if (isUploading) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)

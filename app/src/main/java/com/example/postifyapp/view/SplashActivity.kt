@@ -29,9 +29,15 @@ import androidx.compose.ui.unit.dp
 import com.example.postifyapp.R
 import com.example.postifyapp.ui.theme.White
 import kotlinx.coroutines.delay
+
+/**
+ * Entry point of the application. Displays the brand logo and
+ * handles the initial delay before navigating to the Login screen.
+ */
 class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Extends the layout to use the full screen, including status/navigation bars
         enableEdgeToEdge()
         setContent {
             SplashBody()
@@ -42,11 +48,15 @@ class SplashActivity : ComponentActivity() {
 fun SplashBody() {
     val context= LocalContext.current
     val activity= context as Activity
+    // LaunchedEffect triggers once when the composable enters the Composition
     LaunchedEffect(Unit) {
+        // Hold the splash screen for 3 seconds to show branding
         delay(3000)
+        // Navigate to LoginActivity
         val intent= Intent(context,
             LoginActivity::class.java)
         context.startActivity(intent)
+        // Remove SplashActivity from the backstack so the user can't navigate back to it
         activity.finish()
     }
     Scaffold { padding ->
@@ -58,6 +68,7 @@ fun SplashBody() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // App Logo
             Image(
                 painter = painterResource(R.drawable.logo),
                 contentDescription = null,
@@ -66,6 +77,7 @@ fun SplashBody() {
                     .clip(CircleShape)
             )
             Spacer(modifier = Modifier.height(1.dp))
+            // Visual feedback that the app is loading
             CircularProgressIndicator(
             )
         }
