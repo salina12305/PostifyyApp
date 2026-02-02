@@ -40,7 +40,7 @@ class UserViewModel(val repo: UserRepo) : ViewModel() {
         repo.forgetPassword(email, callback)
     }
 
-    
+
     fun addUserToDatabase(
         userId: String, model: UserModel,
         callback: (Boolean, String) -> Unit
