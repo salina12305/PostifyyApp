@@ -32,20 +32,24 @@ class RegisterInstrumentedTest {
 
     @Test
     fun testSuccessfulRegistrationNavigation() {
-        // 1. Enter Form Data
-        composeRule.onNodeWithTag("regEmail").performTextInput("testuser1@gmail.com")
-        composeRule.onNodeWithTag("regUsername").performTextInput("testuser")
-        composeRule.onNodeWithTag("regPassword").performTextInput("Password123")
-        composeRule.onNodeWithTag("regConfirmPassword").performTextInput("Password123")
+        // 1. Enter Form Data with explicit focus
+        composeRule.onNodeWithTag("regEmail").performClick().performTextInput("testuser2@gmail.com")
+        composeRule.onNodeWithTag("regUsername").performClick().performTextInput("testuser")
 
-        // 2. Click Checkbox
+        // Ensure we are using the same password for both to pass the 'when' validation
+        val testPass = "Password123"
+        composeRule.onNodeWithTag("regPassword").performClick().performTextInput(testPass)
+        composeRule.onNodeWithTag("regConfirmPassword").performClick().performTextInput(testPass)
+
+        // 2. Click Checkbox (Crucial: the 'else' block won't run without this)
         composeRule.onNodeWithTag("regTerms").performClick()
 
         // 3. Click Sign Up
         composeRule.onNodeWithTag("regSignUpButton").performClick()
 
-        // 4. Wait for Firebase/Network (3 seconds)
-        Thread.sleep(3000)
+        // 4. Wait for Firebase & Database (Firebase Auth + Realtime DB is slow)
+        // Using Thread.sleep here is okay for simple tests, but 5s is safer
+        Thread.sleep(5000)
 
         // 5. Verify it navigated back to LoginActivity
         intended(hasComponent(LoginActivity::class.java.name))
