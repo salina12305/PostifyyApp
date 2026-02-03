@@ -39,12 +39,20 @@ import com.example.postifyapp.viewmodel.PostViewModel
  * Features: Filtering personal posts, Editing, Deleting, and viewing Comments.
  */
 @Composable
-fun MyPostScreen() {
+fun MyPostScreen(
+    // In the test, we will pass a fake ID.
+    fakeUserId: String? = null
+) {
     val context = LocalContext.current
     val postViewModel = remember { PostViewModel(PostRepoImpl()) }
     // --- Authentication State ---
-    val currentUserId = remember {
-        com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid }
+//    val currentUserId = remember {
+//        com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid }
+
+    val currentUserId = fakeUserId ?: remember {
+        com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+    }
+
     // --- Observable States from ViewModel ---
     val loading by postViewModel.loading.observeAsState(initial = false)
     val allPosts by postViewModel.allPosts.observeAsState(initial = emptyList())
