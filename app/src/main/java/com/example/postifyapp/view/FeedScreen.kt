@@ -48,16 +48,25 @@ fun getFormattedDate(timestamp: Long? = null): String {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeedScreen() {
+fun FeedScreen(
+    fakeUserId: String? = null,
+    fakePosts: List<PostModel>? = null
+) {
     val context = LocalContext.current
     val postViewModel = remember { PostViewModel(PostRepoImpl()) }
-    val currentUserId = remember {
+//    val currentUserId = remember {
+//        com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+//    }
+    val currentUserId = fakeUserId ?: remember {
         com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
     }
-
     val loading by postViewModel.loading.observeAsState(initial = false)
-    val allPosts by postViewModel.allPosts.observeAsState(initial = emptyList())
+//    val allPosts by postViewModel.allPosts.observeAsState(initial = emptyList())
     val selectedPost by postViewModel.posts.observeAsState()
+
+    // Use fake posts if provided, otherwise use the ViewModel's state
+    val allPostsFromVM by postViewModel.allPosts.observeAsState(initial = emptyList())
+    val allPosts = fakePosts ?: allPostsFromVM
 
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
