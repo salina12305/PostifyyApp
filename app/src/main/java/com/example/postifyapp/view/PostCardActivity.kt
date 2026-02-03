@@ -72,8 +72,11 @@ fun PostScreen(
     val currentUser = remember {
         com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
     }
-    val userId = currentUser?.uid ?: ""
-    val userEmail = currentUser?.email ?: "Unknown"
+//    val userId = currentUser?.uid ?: ""
+//    val userEmail = currentUser?.email ?: "Unknown"
+
+    val userId = currentUser?.uid ?: "test_uid_123"
+    val userEmail = currentUser?.email ?: "testuser1@gmail.com"
 
     // --- UI State ---
     var title by remember { mutableStateOf("") }
